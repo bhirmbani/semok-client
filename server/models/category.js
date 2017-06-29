@@ -5,7 +5,7 @@ module.exports = function (sequelize, DataTypes) {
     name: DataTypes.STRING,
   });
   Category.associate = function (models) {
-    Category.belongsTo(models.Item);
+    Category.hasMany(models.Item);
   };
   return Category;
 };
