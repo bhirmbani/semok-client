@@ -5,7 +5,7 @@ const methods = {};
 
 methods.create = (req, res, next) => {
   if (!req.headers.token) {
-    res.json({ msg: 'butuh jwt token untuk membuat todo', ok: false });
+    res.json({ msg: 'butuh jwt token untuk membuat item baru', ok: false });
   } else {
     const decoded = helper.decode(req.headers.token);
     const name = req.body.name;
@@ -31,10 +31,31 @@ methods.create = (req, res, next) => {
         if (!item) {
           res.json({ msg: 'gagal membuat item baru', ok: false });
         } else {
-          res.json({ item, ok: true, msg: 'item baru berhasil dibuat' });
+          models.WorkerItem.create({
+            itemId: item.id,
+            workerId: decoded.id,
+          })
+          .then((done) => {
+            res.json({ done, item, ok: true, msg: 'item baru berhasil dibuat' });
+          });
         }
       });
     }
+  }
+};
+
+methods.gets = (req, res, next) => {
+  if (!req.headers.token) {
+    res.json({ msg: 'butuh jwt token untuk mengambil data item', ok: false });
+  } else {
+    models.Item.findAll()
+    .then((items) => {
+      if (!items) {
+        res.json({ msg: 'gagal mendapatkan data item', ok: false });
+      } else {
+        res.json({ items, ok: true });
+      }
+    });
   }
 };
 

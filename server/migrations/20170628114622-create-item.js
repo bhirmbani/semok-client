@@ -20,7 +20,7 @@ module.exports = {
       description: {
         type: Sequelize.STRING
       },
-      categoryId: {
+      CategoryId: {
         type: Sequelize.STRING
       },
       createdAt: {
