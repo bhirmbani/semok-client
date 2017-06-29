@@ -68,8 +68,28 @@ methods.getItemByCategoryName = (req, res, next) => {
         model: models.Category,
         where: { id: req.body.categoryId },
       }],
-    }).then((itemByCategory) => {
+    })
+    .then((itemByCategory) => {
       res.json({ itemByCategory, msg: 'berhasil', ok: true });
+    });
+  }
+};
+
+methods.getItemByWorkerName = (req, res, next) => {
+  if (!req.headers.token) {
+    res.json({ msg: 'butuh jwt token untuk mengambil data item', ok: false });
+  } else {
+    const decoded = helper.decode(req.headers.token);
+    models.Worker.findAll({
+      where: { id: decoded.id },
+    })
+    .then((workers) => {
+      workers.forEach((worker) => {
+        worker.getItems()
+        .then((done) => {
+          res.json({ done });
+        });
+      });
     });
   }
 };
