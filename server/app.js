@@ -7,6 +7,16 @@ require('dotenv').config();
 
 app.use(cors());
 
+// passport
+const Worker = require('./controllers/worker');
+const passport = require('passport');
+const LocalStrategy = require('passport-local').Strategy;
+
+passport.use(new LocalStrategy({
+  usernameField: 'email',
+  passwordField: 'password',
+}, Worker.login));
+
 // port setup
 app.set('port', process.env.PORT || 3000);
 

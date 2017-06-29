@@ -37,8 +37,8 @@ methods.create = (req, res, next) => {
             email,
             password,
           })
-        .then((registerdUser) => {
-          res.json({ registerdUser, msg: 'berhasil register user baru dengan email unik', ok: true });
+        .then((registeredUser) => {
+          res.json({ registeredUser, msg: 'berhasil register user baru dengan email unik', ok: true });
         });
         }
       } else {
@@ -46,6 +46,22 @@ methods.create = (req, res, next) => {
       }
     });
   }
+};
+
+methods.login = (email, password, next) => {
+  models.Worker.findOne({
+    where: { email },
+  })
+  .then((user) => {
+    if (!user) {
+      next(null, { error: 'gagal login', ok: false, msg: 'Email tidak ditemukan' });
+    } else if (bcrypt.compareSync(password, user.password)) {
+      const userData = Object.assign({}, user.toJSON());
+      next(null, { msg: 'berhasil login', token: helper.auth(userData), ok: true, user: userData });
+    } else {
+      next(null, { msg: 'Password Anda salah', success: false });
+    }
+  });
 };
 
 module.exports = methods;
