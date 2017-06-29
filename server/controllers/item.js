@@ -59,4 +59,19 @@ methods.gets = (req, res, next) => {
   }
 };
 
+methods.getItemByCategoryName = (req, res, next) => {
+  if (!req.headers.token) {
+    res.json({ msg: 'butuh jwt token untuk mengambil data item', ok: false });
+  } else {
+    models.Item.findAll({
+      include: [{
+        model: models.Category,
+        where: { id: req.body.categoryId },
+      }],
+    }).then((itemByCategory) => {
+      res.json({ itemByCategory, msg: 'berhasil', ok: true });
+    });
+  }
+};
+
 module.exports = methods;
