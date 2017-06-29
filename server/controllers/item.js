@@ -86,10 +86,46 @@ methods.getItemByWorkerName = (req, res, next) => {
     .then((workers) => {
       workers.forEach((worker) => {
         worker.getItems()
-        .then((done) => {
-          res.json({ done });
+        .then((items) => {
+          res.json({ worker, items, msg: 'ambil data item berdasarkan pekerja berhasil', ok: true });
         });
       });
+    });
+  }
+};
+
+methods.delegateItem = (req, res, next) => {
+  const decoded = helper.decode(req.headers.token);
+  if (!req.headers.token) {
+    res.json({ msg: 'butuh jwt token untuk mendelegasikan item', ok: false });
+  } else if (decoded.role === 'manager' || decoded.role === 'asmen') {
+    models.WorkerItem.findOne({
+      where: { itemId: req.body.itemId, workerId: req.body.workerId },
+    })
+    .then((duplicateDelegateItem) => {
+      if (duplicateDelegateItem !== null) {
+        models.Worker.findOne({
+          where: { id: req.body.workerId },
+        })
+        .then((worker) => {
+          res.json({ duplicateDelegateItem, msg: `tidak bisa mendelegasikan item ini kepada ${worker.role} ${worker.name} karena user tersebut sudah menerima delegasi untuk item ini`, ok: false });
+        });
+      } else {
+        models.Worker.findOne({
+          where: { id: req.body.workerId },
+        })
+        .then((worker) => {
+          const itemId = req.body.itemId;
+          const workerId = req.body.workerId;
+          models.WorkerItem.create({
+            itemId,
+            workerId,
+          })
+          .then((delegatedItem) => {
+            res.json({ delegatedItem, msg: `berhasil mendelegasikan item ini kepada ${worker.role} ${worker.name}. Didelegasikan oleh: ${decoded.name}`, ok: true });
+          });
+        });
+      }
     });
   }
 };
