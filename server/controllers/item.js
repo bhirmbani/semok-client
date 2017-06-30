@@ -20,13 +20,18 @@ methods.create = (req, res, next) => {
     } else if (!req.body.stretch) {
       res.json({ msg: 'data stretch harus diisi', ok: false });
     } else {
-      models.Item.create({
-        name,
-        base,
-        stretch,
-        description,
-        categoryId,
+      models.Item.findOne({
+        where: { name },
       })
+      .then((foundItem) => {
+        if (!foundItem) {
+          models.Item.create({
+            name,
+            base,
+            stretch,
+            description,
+            categoryId,
+          })
       .then((item) => {
         if (!item) {
           res.json({ msg: 'gagal membuat item baru', ok: false });
@@ -38,6 +43,10 @@ methods.create = (req, res, next) => {
           .then((workerItemRef) => {
             res.json({ workerItemRef, item, ok: true, msg: 'item baru berhasil dibuat' });
           });
+        }
+      });
+        } else {
+          res.json({ msg: `gagal membuat item karena item ${name} sudah ada.`, ok: false });
         }
       });
     }
