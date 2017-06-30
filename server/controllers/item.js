@@ -79,7 +79,10 @@ methods.getItemByCategoryName = (req, res, next) => {
       }],
     })
     .then((itemByCategory) => {
-      res.json({ itemByCategory, msg: 'berhasil', ok: true });
+      if (itemByCategory.length < 1) {
+        res.json({ msg: 'tidak ada item untuk kategori ini', ok: false });
+      }
+      res.json({ itemByCategory, msg: 'berhasil mendapatkan item berdasarkan kategori', ok: true });
     });
   }
 };
