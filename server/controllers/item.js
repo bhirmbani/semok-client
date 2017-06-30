@@ -35,8 +35,8 @@ methods.create = (req, res, next) => {
             itemId: item.id,
             workerId: decoded.id,
           })
-          .then((done) => {
-            res.json({ done, item, ok: true, msg: 'item baru berhasil dibuat' });
+          .then((workerItemRef) => {
+            res.json({ workerItemRef, item, ok: true, msg: 'item baru berhasil dibuat' });
           });
         }
       });
@@ -66,7 +66,7 @@ methods.getItemByCategoryName = (req, res, next) => {
     models.Item.findAll({
       include: [{
         model: models.Category,
-        where: { id: req.body.categoryId },
+        where: { id: req.params.categoryId },
       }],
     })
     .then((itemByCategory) => {
@@ -79,17 +79,20 @@ methods.getItemByWorkerName = (req, res, next) => {
   if (!req.headers.token) {
     res.json({ msg: 'butuh jwt token untuk mengambil data item', ok: false });
   } else {
-    const decoded = helper.decode(req.headers.token);
     models.Worker.findAll({
-      where: { id: decoded.id },
+      where: { id: req.params.workerId },
     })
     .then((workers) => {
-      workers.forEach((worker) => {
-        worker.getItems()
+      if (workers.length < 1) {
+        res.json({ msg: 'tidak ada item untuk pekerja ini', ok: false });
+      } else {
+        workers.forEach((worker) => {
+          worker.getItems()
         .then((items) => {
           res.json({ worker, items, msg: 'ambil data item berdasarkan pekerja berhasil', ok: true });
         });
-      });
+        });
+      }
     });
   }
 };
@@ -126,6 +129,26 @@ methods.delegateItem = (req, res, next) => {
           });
         });
       }
+    });
+  } else {
+    res.json({ msg: 'hanya manajer dan asmen yang bisa mendelegasikan item', ok: false });
+  }
+};
+
+methods.description = (req, res, next) => {
+  if (!req.headers.token) {
+    res.json({ msg: 'butuh jwt token untuk membuat deskripsi item', ok: false });
+  } else {
+    models.Item.findOne({
+      where: { id: req.body.itemId },
+    })
+    .then((item) => {
+      item.update({
+        description: req.body.description,
+      })
+      .then((itemWithDescription) => {
+        res.json({ itemWithDescription, msg: 'sukses menambahkan deskripsi', ok: true });
+      });
     });
   }
 };
