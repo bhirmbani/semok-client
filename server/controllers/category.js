@@ -39,12 +39,40 @@ methods.assignCategoryToItem = (req, res, next) => {
       where: { id: req.body.itemId },
     })
     .then((item) => {
-      item.update({
-        CategoryId: parseInt(req.body.categoryId, 10),
-      })
-      .then((itemWithCategory) => {
-        res.json({ itemWithCategory, msg: `berhasil menambah/mengubah kategori baru untuk item ${item.name}`, ok: true });
-      });
+      if (item === null) {
+        res.json({ msg: `tidak ditemukan item dengan id ${req.body.itemId}`, ok: false });
+      } else {
+        models.Category.findOne({
+          where: { id: req.body.categoryId },
+        })
+        .then((category) => {
+          if (category === null) {
+            res.json({ msg: `tidak ditemukan category dengan id ${req.body.categoryId}`, ok: false });
+          } else {
+            item.update({
+              CategoryId: parseInt(req.body.categoryId, 10),
+            })
+            .then((itemWithCategory) => {
+              res.json({ itemWithCategory, msg: `berhasil menambah/mengubah kategori baru untuk item ${item.name}`, ok: true });
+            });
+          }
+        });
+      }
+    });
+  }
+};
+
+methods.gets = (req, res, next) => {
+  if (!req.headers.token) {
+    res.json({ msg: 'butuh jwt token untuk menambah kategori pada item', ok: false });
+  } else {
+    models.Category.findAll({
+      include: [{
+        model: models.Item,
+      }],
+    })
+    .then((categories) => {
+      res.json({ categories, msg: 'testing' });
     });
   }
 };

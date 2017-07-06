@@ -5,5 +5,6 @@ const Category = require('../controllers/category');
 
 router.post('/', Category.create);
 router.post('/item', Category.assignCategoryToItem);
+router.get('/', Category.gets);
 
 module.exports = router;

@@ -1,38 +1,27 @@
 'use strict';
 module.exports = {
   up: function(queryInterface, Sequelize) {
-    return queryInterface.createTable('Items', {
+    return queryInterface.createTable('Infos', {
       id: {
         allowNull: false,
         autoIncrement: true,
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      name: {
+      delegateBy: {
         type: Sequelize.STRING
       },
-      base: {
-        type: Sequelize.DECIMAL,
-      },
-      stretch: {
-        type: Sequelize.DECIMAL,
-      },
-      description: {
-        type: Sequelize.STRING
-      },
-      CategoryId: {
-        type: Sequelize.INTEGER
-      },
-      createdBy: {
+      delegateTo: {
         type: Sequelize.STRING
       },
       currentVal: {
-        type: Sequelize.DECIMAL,
-        defaultValue: 0,
+        type: Sequelize.FLOAT
       },
-      status: {
-        type: Sequelize.ENUM('red', 'green', 'star'),
-        defaultValue: 'red',
+      ItemId: {
+        type: Sequelize.INTEGER
+      },
+      WorkerId: {
+        type: Sequelize.INTEGER
       },
       createdAt: {
         allowNull: false,
@@ -45,6 +34,6 @@ module.exports = {
     });
   },
   down: function(queryInterface, Sequelize) {
-    return queryInterface.dropTable('Items');
+    return queryInterface.dropTable('Infos');
   }
 };
