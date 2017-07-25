@@ -11,9 +11,9 @@ module.exports = function (sequelize, DataTypes) {
   });
   Worker.associate = function (models) {
     Worker.belongsToMany(models.Item, { through: 'WorkerItem', foreignKey: 'workerId' });
+    Worker.belongsToMany(models.TopCategory, { through: 'BobotSum', foreignKey: 'workerId' });
     Worker.hasMany(models.Bobot);
     Worker.hasMany(models.Info);
-    Worker.hasMany(models.Status);
   };
   return Worker;
 };

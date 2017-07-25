@@ -14,9 +14,6 @@ module.exports = {
       delegateTo: {
         type: Sequelize.STRING
       },
-      currentVal: {
-        type: Sequelize.FLOAT
-      },
       ItemId: {
         type: Sequelize.INTEGER
       },

@@ -8,7 +8,7 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
-      point: {
+      value: {
         type: Sequelize.INTEGER,
         defaultValue: 0,
       },

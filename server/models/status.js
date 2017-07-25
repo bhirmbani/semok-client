@@ -2,13 +2,15 @@
 
 module.exports = function (sequelize, DataTypes) {
   let Status = sequelize.define('Status', {
-    content: DataTypes.ENUM('red', 'green', 'star'),
-    ItemId: DataTypes.INTEGER,
-    WorkerId: DataTypes.INTEGER,
+    period: DataTypes.ENUM(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12),
+    value: DataTypes.FLOAT,
+    stats: {
+      type: DataTypes.ENUM('red', 'green', 'star'),
+      defaultValue: 'red',
+    },
   });
   Status.associate = function (models) {
-    Status.belongsTo(models.Item);
-    Status.belongsTo(models.Worker);
+    Status.belongsToMany(models.Item, { through: 'StatusItem', foreignKey: 'statusId' });
   };
   return Status;
 };

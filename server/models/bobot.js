@@ -2,7 +2,7 @@
 
 module.exports = function (sequelize, DataTypes) {
   let Bobot = sequelize.define('Bobot', {
-    point: {
+    value: {
       type: DataTypes.INTEGER,
       defaultValue: 0,
     },

@@ -1,7 +1,7 @@
 'use strict';
 module.exports = {
   up: function(queryInterface, Sequelize) {
-    return queryInterface.createTable('Progresses', {
+    return queryInterface.createTable('Performances', {
       id: {
         allowNull: false,
         autoIncrement: true,
@@ -12,8 +12,7 @@ module.exports = {
         type: Sequelize.ENUM(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12),
       },
       value: {
-        type: Sequelize.DECIMAL,
-        defaultValue: 0,
+        type: Sequelize.FLOAT
       },
       createdAt: {
         allowNull: false,
@@ -26,6 +25,6 @@ module.exports = {
     });
   },
   down: function(queryInterface, Sequelize) {
-    return queryInterface.dropTable('Progresses');
+    return queryInterface.dropTable('Performances');
   }
 };
