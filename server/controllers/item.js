@@ -9,18 +9,14 @@ methods.create = (req, res, next) => {
   } else {
     const decoded = helper.decode(req.headers.token);
     const name = req.body.name;
-    const base = req.body.base;
-    const stretch = req.body.stretch;
     const description = req.body.description;
-    const categoryId = req.body.categoryId;
-    const bobot = req.body.bobot;
+    const value = req.body.value;
     const createdBy = decoded.name;
+    const freq = req.body.freq;
     if (!req.body.name) {
       res.json({ msg: 'nama item harus diisi', ok: false });
-    } else if (!req.body.base) {
-      res.json({ msg: 'data base harus diisi', ok: false });
-    } else if (!req.body.stretch) {
-      res.json({ msg: 'data stretch harus diisi', ok: false });
+    } else if (!req.body.freq) {
+      res.json({ msg: 'data freq harus diisi', ok: false });
     } else {
       models.Item.findOne({
         where: { name },
@@ -29,44 +25,97 @@ methods.create = (req, res, next) => {
         if (!foundItem) {
           models.Item.create({
             name,
-            base,
-            stretch,
             description,
-            categoryId,
             createdBy,
+            freq,
           })
       .then((item) => {
         if (!item) {
           res.json({ msg: 'gagal membuat item baru', ok: false });
         } else {
           models.Bobot.create({
-            point: bobot,
+            value,
             ItemId: item.id,
             WorkerId: decoded.id,
           })
-          .then((bobotItemRef) => {
+          .then((bobotRef) => {
             models.WorkerItem.create({
               itemId: item.id,
               workerId: decoded.id,
             })
           .then((workerItemRef) => {
-            models.Status.create({
-              content: 'red',
+            models.Info.create({
               ItemId: item.id,
               WorkerId: decoded.id,
             })
-            .then((statusRef) => {
-              models.Info.create({
+            .then((infoRef) => {
+              models.Unit.create({
                 ItemId: item.id,
-                WorkerId: decoded.id,
               })
-              .then((infoRef) => {
-                models.Unit.create({
-                  ItemId: item.id,
-                })
-                .then((unitRef) => {
-                  res.json({ unitRef, infoRef, statusRef, bobotItemRef, workerItemRef, item, ok: true, msg: 'item baru berhasil dibuat' });
-                });
+              .then((unitRef) => {
+                if (item.freq === '3') {
+                  for (let i = 3; i <= 12; i += 3) {
+                    models.Target.create({
+                      period: i.toString(),
+                    })
+                    .then((target) => {
+                      models.TargetItem.create({
+                        itemId: item.id,
+                        targetId: target.id,
+                      });
+                      models.Progress.create({
+                        period: i.toString(),
+                      })
+                      .then((progress) => {
+                        models.ProgressItem.create({
+                          progressId: progress.id,
+                          itemId: item.id,
+                        });
+                      });
+                    });
+                  }
+                } else if (item.freq === '1') {
+                  for (let i = 1; i <= 12; i += 1) {
+                    models.Target.create({
+                      period: i.toString(),
+                    })
+                    .then((target) => {
+                      models.TargetItem.create({
+                        itemId: item.id,
+                        targetId: target.id,
+                      });
+                      models.Progress.create({
+                        period: i.toString(),
+                      })
+                      .then((progress) => {
+                        models.ProgressItem.create({
+                          progressId: progress.id,
+                          itemId: item.id,
+                        });
+                      });
+                    });
+                  }
+                } else {
+                  models.Target.create({
+                    period: '12',
+                  })
+                  .then((target) => {
+                    models.TargetItem.create({
+                      itemId: item.id,
+                      targetId: target.id,
+                    });
+                    models.Progress.create({
+                      period: '12',
+                    })
+                    .then((progress) => {
+                      models.ProgressItem.create({
+                        progressId: progress.id,
+                        itemId: item.id,
+                      });
+                    });
+                  });
+                }
+                res.json({ unitRef, infoRef, bobotRef, workerItemRef, item, ok: true, msg: 'item baru berhasil dibuat' });
               });
             });
           });
@@ -95,13 +144,28 @@ methods.gets = (req, res, next) => {
           model: models.Worker,
         },
         {
-          model: models.Status,
-        },
-        {
           model: models.Info,
         },
         {
           model: models.Unit,
+        },
+        {
+          model: models.Target,
+        },
+        {
+          model: models.Progress,
+        },
+        {
+          model: models.Performance,
+        },
+        {
+          model: models.Status,
+        },
+        {
+          model: models.Category,
+          include: [{
+            model: models.TopCategory,
+          }],
         },
       ],
     })
@@ -249,21 +313,14 @@ methods.delegateItem = (req, res, next) => {
                         WorkerId: req.body.workerId,
                       })
                       .then((bobotRef) => {
-                        models.Status.create({
-                          content: 'red',
+                        models.Info.create({
                           ItemId: req.body.itemId,
                           WorkerId: req.body.workerId,
+                          delegateBy: decoded.name,
+                          delegateTo: worker.name,
                         })
-                        .then((statusRef) => {
-                          models.Info.create({
-                            ItemId: req.body.itemId,
-                            WorkerId: req.body.workerId,
-                            delegateBy: decoded.name,
-                            delegateTo: worker.name,
-                          })
-                          .then((infoRef) => {
-                            res.json({ statusRef, infoRef, bobotRef, delegatedItem, msg: `berhasil mendelegasikan item ${itemRef.name} kepada ${worker.role} ${worker.name}. Didelegasikan oleh: ${decoded.name}`, ok: true });
-                          });
+                        .then((infoRef) => {
+                          res.json({ infoRef, bobotRef, delegatedItem, msg: `berhasil mendelegasikan item ${itemRef.name} kepada ${worker.role} ${worker.name}. Didelegasikan oleh: ${decoded.name}`, ok: true });
                         });
                       });
                     });
@@ -296,24 +353,17 @@ methods.delegateItem = (req, res, next) => {
                             ItemId: req.body.itemId,
                             WorkerId: req.body.workerId,
                           })
-                        .then((bobotRef) => {
-                          models.Status.create({
-                            content: 'red',
-                            ItemId: req.body.itemId,
-                            WorkerId: req.body.workerId,
-                          })
-                        .then((statusRef) => {
-                          models.Info.create({
-                            ItemId: req.body.itemId,
-                            WorkerId: req.body.workerId,
-                            delegateBy: decoded.name,
-                            delegateTo: worker.name,
-                          })
-                          .then((infoRef) => {
-                            res.json({ statusRef, infoRef, bobotRef, delegatedItem, msg: `berhasil mendelegasikan item ${itemRef2.name} kepada ${worker.role} ${worker.name}. Didelegasikan oleh: ${decoded.name}`, ok: true });
+                          .then((bobotRef) => {
+                            models.Info.create({
+                              ItemId: req.body.itemId,
+                              WorkerId: req.body.workerId,
+                              delegateBy: decoded.name,
+                              delegateTo: worker.name,
+                            })
+                            .then((infoRef) => {
+                              res.json({ infoRef, bobotRef, delegatedItem, msg: `berhasil mendelegasikan item ${itemRef2.name} kepada ${worker.role} ${worker.name}. Didelegasikan oleh: ${decoded.name}`, ok: true });
+                            });
                           });
-                        });
-                        });
                         });
                       });
                     }
@@ -366,21 +416,14 @@ methods.delegateItem = (req, res, next) => {
                         WorkerId: req.body.workerId,
                       })
                       .then((bobotRef) => {
-                        models.Status.create({
-                          content: 'red',
+                        models.Info.create({
                           ItemId: req.body.itemId,
                           WorkerId: req.body.workerId,
+                          delegateBy: decoded.name,
+                          delegateTo: worker.name,
                         })
-                        .then((statusRef) => {
-                          models.Info.create({
-                            ItemId: req.body.itemId,
-                            WorkerId: req.body.workerId,
-                            delegateBy: decoded.name,
-                            delegateTo: worker.name,
-                          })
-                          .then((infoRef) => {
-                            res.json({ statusRef, infoRef, bobotRef, delegatedItem, msg: `berhasil mendelegasikan item ${itemRef.name} kepada ${worker.role} ${worker.name}. Didelegasikan oleh: ${decoded.name}`, ok: true });
-                          });
+                        .then((infoRef) => {
+                          res.json({ infoRef, bobotRef, delegatedItem, msg: `berhasil mendelegasikan item ${itemRef.name} kepada ${worker.role} ${worker.name}. Didelegasikan oleh: ${decoded.name}`, ok: true });
                         });
                       });
                     });
@@ -418,24 +461,17 @@ methods.delegateItem = (req, res, next) => {
                             ItemId: req.body.itemId,
                             WorkerId: req.body.workerId,
                           })
-                        .then((bobotRef) => {
-                          models.Status.create({
-                            content: 'red',
-                            ItemId: req.body.itemId,
-                            WorkerId: req.body.workerId,
-                          })
-                        .then((statusRef) => {
-                          models.Info.create({
-                            ItemId: req.body.itemId,
-                            WorkerId: req.body.workerId,
-                            delegateBy: decoded.name,
-                            delegateTo: worker.name,
-                          })
-                          .then((infoRef) => {
-                            res.json({ ref: '459', statusRef, infoRef, bobotRef, delegatedItem, msg: `berhasil mendelegasikan item ${itemRef2.name} kepada ${worker.role} ${worker.name}. Didelegasikan oleh: ${decoded.name}`, ok: true });
+                          .then((bobotRef) => {
+                            models.Info.create({
+                              ItemId: req.body.itemId,
+                              WorkerId: req.body.workerId,
+                              delegateBy: decoded.name,
+                              delegateTo: worker.name,
+                            })
+                            .then((infoRef) => {
+                              res.json({ ref: '459', infoRef, bobotRef, delegatedItem, msg: `berhasil mendelegasikan item ${itemRef2.name} kepada ${worker.role} ${worker.name}. Didelegasikan oleh: ${decoded.name}`, ok: true });
+                            });
                           });
-                        });
-                        });
                         });
                       });
                     }
@@ -481,28 +517,68 @@ methods.delegateItem = (req, res, next) => {
                         WorkerId: req.body.workerId,
                       })
                       .then((bobotRef) => {
-                        models.Status.create({
-                          content: 'red',
+                        models.Info.create({
                           ItemId: req.body.itemId,
                           WorkerId: req.body.workerId,
+                          delegateBy: decoded.name,
+                          delegateTo: worker.name,
                         })
-                        .then((statusRef) => {
-                          models.Info.create({
-                            ItemId: req.body.itemId,
-                            WorkerId: req.body.workerId,
-                            delegateBy: decoded.name,
-                            delegateTo: worker.name,
-                          })
-                          .then((infoRef) => {
-                            res.json({ ref: '486', statusRef, infoRef, bobotRef, delegatedItem, msg: `berhasil mendelegasikan item ${itemRef.name} kepada ${worker.role} ${worker.name}. Didelegasikan oleh: ${decoded.name}`, ok: true });
-                          });
+                        .then((infoRef) => {
+                          res.json({ ref: '486', infoRef, bobotRef, delegatedItem, msg: `berhasil mendelegasikan item ${itemRef.name} kepada ${worker.role} ${worker.name}. Didelegasikan oleh: ${decoded.name}`, ok: true });
                         });
                       });
                     });
                   });
                 }
               });
-            } else if (worker.role === 'manager' || worker.role === 'staff') {
+            } else if (worker.role === 'staff') {
+              // delegation logic for manager to staff
+              models.Item.findOne({
+                where: { id: req.body.itemId },
+                include:
+                [
+                  {
+                    model: models.Info,
+                    where: { WorkerId: decoded.id },
+                  },
+                ],
+              })
+              .then((item) => {
+                if (item === null) {
+                  res.json({ ref: '548', msg: 'item ini bukan milik Anda', ok: false });
+                } else {
+                  // item milik yang login
+                  const itemId = req.body.itemId;
+                  const workerId = req.body.workerId;
+                  models.WorkerItem.create({
+                    itemId,
+                    workerId,
+                  })
+                  .then((delegatedItem) => {
+                    models.Item.findOne({
+                      where: { id: req.body.itemId },
+                    })
+                    .then((itemRef) => {
+                      models.Bobot.create({
+                        ItemId: req.body.itemId,
+                        WorkerId: req.body.workerId,
+                      })
+                      .then((bobotRef) => {
+                        models.Info.create({
+                          ItemId: req.body.itemId,
+                          WorkerId: req.body.workerId,
+                          delegateBy: decoded.name,
+                          delegateTo: worker.name,
+                        })
+                        .then((infoRef) => {
+                          res.json({ ref: '486', infoRef, bobotRef, delegatedItem, msg: `berhasil mendelegasikan item ${itemRef.name} kepada ${worker.role} ${worker.name}. Didelegasikan oleh: ${decoded.name}`, ok: true });
+                        });
+                      });
+                    });
+                  });
+                }
+              });
+            } else if (worker.role === 'manager') {
               res.json({ msg: worker.role === 'manager' ? 'tidak bisa mendelegasikan item dari manager ke sesama manager' : 'tidak bisa mendelegasikan item dari manager ke staff', ok: false });
             } else {
               res.json({ ref: '464', msg: 'tidak ada fitur pendelegasian kepada admin', ok: false });
@@ -583,21 +659,14 @@ methods.delegateItem = (req, res, next) => {
                         WorkerId: req.body.workerId,
                       })
                       .then((bobotRef) => {
-                        models.Status.create({
-                          content: 'red',
+                        models.Info.create({
                           ItemId: req.body.itemId,
                           WorkerId: req.body.workerId,
+                          delegateBy: decoded.name,
+                          delegateTo: worker.name,
                         })
-                        .then((statusRef) => {
-                          models.Info.create({
-                            ItemId: req.body.itemId,
-                            WorkerId: req.body.workerId,
-                            delegateBy: decoded.name,
-                            delegateTo: worker.name,
-                          })
-                          .then((infoRef) => {
-                            res.json({ statusRef, infoRef, bobotRef, delegatedItem, msg: `berhasil mendelegasikan item ${itemRef.name} kepada ${worker.role} ${worker.name}. Didelegasikan oleh: ${decoded.name}`, ok: true });
-                          });
+                        .then((infoRef) => {
+                          res.json({ infoRef, bobotRef, delegatedItem, msg: `berhasil mendelegasikan item ${itemRef.name} kepada ${worker.role} ${worker.name}. Didelegasikan oleh: ${decoded.name}`, ok: true });
                         });
                       });
                     });
@@ -630,24 +699,17 @@ methods.delegateItem = (req, res, next) => {
                             ItemId: req.body.itemId,
                             WorkerId: req.body.workerId,
                           })
-                        .then((bobotRef) => {
-                          models.Status.create({
-                            content: 'red',
-                            ItemId: req.body.itemId,
-                            WorkerId: req.body.workerId,
-                          })
-                        .then((statusRef) => {
-                          models.Info.create({
-                            ItemId: req.body.itemId,
-                            WorkerId: req.body.workerId,
-                            delegateBy: decoded.name,
-                            delegateTo: worker.name,
-                          })
-                          .then((infoRef) => {
-                            res.json({ statusRef, infoRef, bobotRef, delegatedItem, msg: `berhasil mendelegasikan item ${itemRef2.name} kepada ${worker.role} ${worker.name}. Didelegasikan oleh: ${decoded.name}`, ok: true });
+                          .then((bobotRef) => {
+                            models.Info.create({
+                              ItemId: req.body.itemId,
+                              WorkerId: req.body.workerId,
+                              delegateBy: decoded.name,
+                              delegateTo: worker.name,
+                            })
+                            .then((infoRef) => {
+                              res.json({ infoRef, bobotRef, delegatedItem, msg: `berhasil mendelegasikan item ${itemRef2.name} kepada ${worker.role} ${worker.name}. Didelegasikan oleh: ${decoded.name}`, ok: true });
+                            });
                           });
-                        });
-                        });
                         });
                       });
                     }
@@ -715,136 +777,6 @@ methods.getItemById = (req, res, next) => {
   }
 };
 
-methods.updateProgress = (req, res, next) => {
-  const decoded = helper.decode(req.headers.token);
-  if (!req.headers.token) {
-    res.json({ msg: 'butuh jwt token untuk mengupdate progress item', ok: false });
-  } else {
-    models.Item.findOne({
-      where: { id: req.body.itemId },
-      include:
-      [
-        {
-          model: models.Info,
-        },
-        {
-          model: models.Worker,
-        },
-      ],
-    })
-    .then((item) => {
-      if (item === null) {
-        res.json({ msg: `tidak ditemukan item dengan id ${req.body.itemId}`, ok: false });
-      } else if (item.createdBy === decoded.name) {
-        const beforeUpdate = {
-          value: item.currentVal,
-          status: item.status,
-        };
-        item.update({
-          currentVal: req.body.currentVal,
-        })
-        .then((itemRef) => {
-          models.Worker.findOne({
-            where: { id: decoded.id },
-          })
-          .then((workerRef) => {
-            if (itemRef.currentVal >= itemRef.base && itemRef.currentVal < itemRef.stretch) {
-              models.Item.findOne({
-                where: { id: req.body.itemId },
-              })
-              .then((updatedItem) => {
-                updatedItem.update({
-                  status: 'green',
-                });
-                res.json({ ref: '748', msg: `${workerRef.role} ${workerRef.name} sukses mengupdate nilai progress item ${updatedItem.name} menjadi ${updatedItem.currentVal}`, ok: true, updatedItem, beforeUpdate });
-              });
-            } else if (itemRef.currentVal < itemRef.base) {
-              models.Item.findOne({
-                where: { id: req.body.itemId },
-              })
-              .then((updatedItem) => {
-                updatedItem.update({
-                  status: 'red',
-                });
-                res.json({ ref: '758', msg: `${workerRef.role} ${workerRef.name} sukses mengupdate nilai progress item ${updatedItem.name} menjadi ${updatedItem.currentVal}`, ok: true, updatedItem, beforeUpdate });
-              });
-            } else if (itemRef.currentVal >= itemRef.stretch) {
-              models.Item.findOne({
-                where: { id: req.body.itemId },
-              })
-              .then((updatedItem) => {
-                updatedItem.update({
-                  status: 'star',
-                });
-                res.json({ ref: '768', msg: `${workerRef.role} ${workerRef.name} sukses mengupdate nilai progress item ${updatedItem.name} menjadi ${updatedItem.currentVal}`, ok: true, updatedItem, beforeUpdate });
-              });
-            }
-          });
-        });
-      } else {
-        const filteredItems = item.Infos.filter(info => info.delegateTo === decoded.name);
-        if (filteredItems.length < 1) {
-          res.json({ ref: '776', msg: `${decoded.name} tidak bisa mengupdate progress item ini karena item belum jadi miliknya`, ok: false, item });
-        }
-        if (filteredItems[0].delegateTo === decoded.name) {
-          item.update({
-            currentVal: req.body.currentVal,
-          })
-          .then(() => {
-            // tambah logic update status seperti di atas
-            const beforeUpdate = {
-              value: item.currentVal,
-              status: item.status,
-            };
-            item.update({
-              currentVal: req.body.currentVal,
-            })
-            .then((itemRef2) => {
-              models.Worker.findOne({
-                where: { id: decoded.id },
-              })
-              .then((workerRef) => {
-                if (itemRef2.currentVal >= itemRef2.base &&
-                itemRef2.currentVal < itemRef2.stretch) {
-                  models.Item.findOne({
-                    where: { id: req.body.itemId },
-                  })
-                  .then((updatedItem) => {
-                    updatedItem.update({
-                      status: 'green',
-                    });
-                    res.json({ ref: '805', msg: `${workerRef.role} ${workerRef.name} sukses mengupdate nilai progress item ${updatedItem.name} menjadi ${updatedItem.currentVal}`, ok: true, updatedItem, beforeUpdate });
-                  });
-                } else if (itemRef2.currentVal < itemRef2.base) {
-                  models.Item.findOne({
-                    where: { id: req.body.itemId },
-                  })
-                  .then((updatedItem) => {
-                    updatedItem.update({
-                      status: 'red',
-                    });
-                    res.json({ ref: '815', msg: `${workerRef.role} ${workerRef.name} sukses mengupdate nilai progress item ${updatedItem.name} menjadi ${updatedItem.currentVal}`, ok: true, updatedItem, beforeUpdate });
-                  });
-                } else if (itemRef2.currentVal >= itemRef2.stretch) {
-                  models.Item.findOne({
-                    where: { id: req.body.itemId },
-                  })
-                  .then((updatedItem) => {
-                    updatedItem.update({
-                      status: 'star',
-                    });
-                    res.json({ ref: '825', msg: `${workerRef.role} ${workerRef.name} sukses mengupdate nilai progress item ${updatedItem.name} menjadi ${updatedItem.currentVal}`, ok: true, updatedItem, beforeUpdate });
-                  });
-                }
-              });
-            });
-          });
-        }
-      }
-    });
-  }
-};
-
 methods.getItemWithInfo = (req, res, next) => {
   if (!req.headers.token) {
     res.json({ msg: 'butuh jwt token untuk mendapatkan data item', ok: false });
@@ -872,33 +804,75 @@ methods.getItemWithInfo = (req, res, next) => {
     });
   }
 };
-
-methods.updateItemScore = (req, res, next) => {
+// yang bisa update target hanya yang punya item dan admin
+methods.updateTargetScore = (req, res, next) => {
   const decoded = helper.decode(req.headers.token);
   if (!req.headers.token) {
     res.json({ msg: 'butuh jwt token untuk mengupdate item', ok: false });
   } else {
-    models.Item.findOne({
-      where: { id: req.body.itemId },
+    models.Worker.findOne({
+      where: decoded.id,
+      include: [{
+        model: models.Item,
+      }],
     })
-    .then((item) => {
-      if (item === null) {
-        res.json({ msg: `tidak ditemukan item dengan id ${req.body.itemId}`, ok: false });
-      } else if (decoded.role === 'admin' || decoded.role === 'manager') {
-        if (!req.body.base && !req.body.stretch) {
-          res.json({ msg: 'data base dan stretch tidak boleh kosong', ok: false });
-        } else {
-          item.update({
-            base: req.body.base || item.base,
-            stretch: req.body.stretch || item.stretch,
-          })
-        .then((updatedItem) => {
-          res.json({ updatedItem, msg: 'berhasil mengupdate item', ok: true });
-        });
+    .then((worker) => {
+      const filteredItem = worker.Items.filter(
+        item => item.WorkerItem.itemId === Number.parseInt(req.body.itemId, 10) &&
+        item.WorkerItem.workerId === decoded.id);
+      models.Item.findOne({
+        where: { id: req.body.itemId },
+      })
+      .then((item) => {
+        if (decoded.role === 'admin') {
+          if (item === null) {
+            res.json({ ref: 881, msg: `tidak ditemukan item dengan id ${req.body.itemId}`, ok: false });
+          } else {
+            item.getTargets()
+            .then((targetRef) => {
+              const targets = targetRef.map(target => target);
+              const filteredTargets = targets.filter(target => target.period === req.body.period);
+              if (filteredTargets.length < 1) {
+                res.json({ ref: 888, msg: `tidak ditemukan period ${req.body.period} pada item ini`, ok: false });
+              } else {
+                filteredTargets[0].update({
+                  base: req.body.base,
+                  stretch: req.body.stretch,
+                })
+                .then((updatedTarget) => {
+                  res.json({ ref: 895, msg: 'berhasil update target', updatedTarget, ok: true });
+                });
+              }
+            });
+          }
+        } else if (item === null && decoded.role !== 'admin') {
+          res.json({ ref: 901, msg: `tidak ditemukan item dengan id ${req.body.itemId}`, ok: false });
+        } else if (filteredItem.length < 1 && decoded.role !== 'admin') {
+          res.json({ ref: 903, msg: `${decoded.role} ${decoded.name} tidak punya akses terhadap item ini`, item, ok: false });
+        } else if (filteredItem[0].createdBy === decoded.name && decoded.role !== 'admin') {
+          if (!req.body.base && !req.body.stretch) {
+            res.json({ ref: 906, msg: 'data base dan stretch tidak boleh kosong', ok: false });
+          } else {
+            item.getTargets()
+            .then((itemWithTarget) => {
+              const filteredTarget = itemWithTarget.filter(each => each.period === req.body.period);
+              if (filteredTarget.length < 1) {
+                res.json({ ref: 912, msg: `tidak ditemukan period ${req.body.period} pada item ini`, ok: false });
+              } else {
+                filteredTarget[0].update({
+                  base: req.body.base,
+                  stretch: req.body.stretch,
+                })
+                .then((updatedTarget) => {
+                  res.json({ ref: 919, msg: 'berhasil update target', updatedTarget, ok: true });
+                });
+              }
+            });
+          }
+        } else if (filteredItem[0].WorkerItem.workerId === worker.id) {
+          res.json({ ref: 925, msg: 'Anda sudah didelegasikan item ini, namun harus izin dulu pada yang punya item untuk mengupdate base dan value', ok: false });
         }
-      } else {
-        res.json({ msg: 'hanya  manager dan admin yang bisa update base dan stretch', ok: false });
-      }
+      });
     });
   }
 };
@@ -923,7 +897,7 @@ methods.updateBobot = (req, res, next) => {
         res.json({ ref: '912', msg: `${decoded.role} ${decoded.name} tidak punya akses terhadap item ini karena belum didelegasikan`, ok: false });
       } else {
         item.Bobots[0].update({
-          point: Number.parseInt(req.body.point, 10),
+          value: Number.parseInt(req.body.value, 10),
         })
         .then((updatedItem) => {
           res.json({ updatedItem });
@@ -938,7 +912,7 @@ methods.updateUnitName = (req, res, next) => {
   const ItemId = req.body.itemId;
   const decoded = helper.decode(req.headers.token);
   if (!req.headers.token) {
-    res.json({ msg: 'butuh jwt token untuk mengupdate bobot', ok: false });
+    res.json({ msg: 'butuh jwt token untuk mengupdate nama unit', ok: false });
   } else {
     models.Item.findOne({
       where: { id: ItemId },
@@ -986,6 +960,152 @@ methods.updateUnitName = (req, res, next) => {
         .then(() => {
           res.json({ ref: '987', msg: `sukses mengupdate unit di item dengan id ${ItemId}`, item });
         });
+      }
+    });
+  }
+};
+
+methods.addNewProgress = (req, res, next) => {
+  const decoded = helper.decode(req.headers.token);
+  if (!req.headers.token) {
+    res.json({ msg: 'butuh jwt token untuk mengupdate nama unit', ok: false });
+  } else {
+    models.Item.findOne({
+      where: {
+        id: req.body.itemId,
+      },
+    })
+    .then((item) => {
+      if (item === null) {
+        res.json({ msg: `tidak ditemukan item dengan id ${req.body.itemId}` });
+      } else if (req.body.itemId && req.body.period && req.body.value && item !== null) {
+        item.getTargets()
+        .then((targetRef) => {
+          const targets = targetRef.map(target => target);
+          const filteredTargets = targets.filter(target => target.period === req.body.period);
+          if (filteredTargets.length < 1) {
+            res.json({ ref: 1038, msg: `tidak ada period ${req.body.period} untuk item dengan id ${req.body.itemId}`, ok: false });
+          } else {
+            item.getProgresses()
+            .then((progressRef) => {
+              const filteredProgress = progressRef.filter(
+                progress => progress.period === req.body.period);
+              filteredProgress[0].update({
+                value: req.body.value,
+              })
+              .then((updatedProgress) => {
+                // update status di sini
+                let value = 0;
+                let stats = '';
+                const processStatsValue = (progress, base, stretch) => {
+                  let result = 0;
+                  if (base > stretch) {
+                    if (progress > base) {
+                      result = (1 - (progress - base) / base) * 100;
+                      stats = 'red';
+                    } else if (progress === base) {
+                      result = (1 + (progress - base) / base) * 100;
+                      stats = 'green';
+                    } else if (progress < base && progress > stretch) {
+                      result = (120 / (100 - ((progress - stretch) * (120 - 100) / (stretch - base)))) * 100;
+                      stats = 'green';
+                    } else if (progress <= stretch) {
+                      result = 120;
+                      stats = 'star';
+                    }
+                    return result;
+                  } else if (base < stretch) {
+                    if (progress === base) {
+                      result = (1 + (progress - base) / base) * 100;
+                      stats = 'green';
+                    } else if (progress > base && progress < stretch) {
+                      result = (105 / (100 + ((progress - stretch) * (105 - 100) / (base - stretch)))) * 100;
+                      stats = 'green';
+                    } else if (progress < base) {
+                      result = (1 + (progress - base) / base) * 100;
+                      stats = 'red';
+                    } else if (progress > base) {
+                      stats = 'star';
+                      result = (105 / (100 + ((progress - stretch) * (105 - 100) / (base - stretch)))) * 100;
+                    }
+                    if (result < 0) result = 105;
+                    return result;
+                  }
+                };
+                if (filteredTargets[0].base === null && filteredTargets[0].stretch === null) {
+                  res.json({ msg: `tidak bisa update progress. pastikan data base dan/atau stretch untuk period ${req.body.period} pada item dengan id ${item.id} diisi dulu`, ok: false });
+                } else {
+                  const progress = Number.parseInt(updatedProgress.value, 10);
+                  const base = Number.parseInt(filteredTargets[0].base, 10);
+                  const stretch = Number.parseInt(filteredTargets[0].stretch, 10);
+                  value = processStatsValue(progress, base, stretch);
+                }
+                // create dulu kalau belum ada, kalau ada update
+                item.getStatuses()
+                .then((val) => {
+                  item.getPerformances()
+                  .then((perf) => {
+                    item.getBobots()
+                    .then((bots) => {
+                      const filteredBobots = bots.filter(bobot => bobot.WorkerId === decoded.id);
+                      const statuses = val.map(each => each);
+                      const filteredStatuses =
+                      statuses.filter(each => each.period === req.body.period);
+                      if (filteredStatuses.length < 1) {
+                        models.Status.create({
+                          period: req.body.period,
+                          value,
+                          stats,
+                        })
+                        .then((status) => {
+                          models.StatusItem.create({
+                            statusId: status.id,
+                            itemId: item.id,
+                          })
+                          .then((statusItemRef) => {
+                            if (perf.length < 1) {
+                              value = (filteredBobots[0].value / 100) * (status.value / 100) * 100;
+                              models.Performance.create({
+                                period: req.body.period,
+                                value,
+                              })
+                              .then((performanceRef) => {
+                                models.PerformanceItem.create({
+                                  performanceId: performanceRef.id,
+                                  itemId: item.id,
+                                });
+                                res.json({ ref: 1137, msg: 'berhasil update progress value', filteredProgress, updatedProgress, filteredTargets, statusItemRef, status, performanceRef, ok: true });
+                              });
+                            } else {
+                              res.json({ ref: 1157, msg: 'update performance di sini' });
+                            }
+                          });
+                        });
+                      } else {
+                        filteredStatuses[0].update({
+                          value,
+                          stats,
+                        })
+                        .then((updatedStats) => {
+                          value =
+                          (filteredBobots[0].value / 100) * (updatedStats.value / 100) * 100;
+                          perf[0].update({
+                            value,
+                          })
+                          .then((updatedPerf) => {
+                            res.json({ ref: 1146, msg: 'berhasil update progress value', filteredProgress, updatedProgress, filteredTargets, updatedStats, stats, updatedPerf, ok: true });
+                          });
+                        });
+                      }
+                    });
+                  });
+                });
+              });
+            });
+          }
+        });
+      } else {
+        res.json({ msg: 'pastikan data req.bodyitemId , period dan value di isi semua', ok: false });
       }
     });
   }

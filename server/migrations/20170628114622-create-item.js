@@ -11,12 +11,6 @@ module.exports = {
       name: {
         type: Sequelize.STRING
       },
-      base: {
-        type: Sequelize.DECIMAL,
-      },
-      stretch: {
-        type: Sequelize.DECIMAL,
-      },
       description: {
         type: Sequelize.STRING
       },
@@ -26,13 +20,8 @@ module.exports = {
       createdBy: {
         type: Sequelize.STRING
       },
-      currentVal: {
-        type: Sequelize.DECIMAL,
-        defaultValue: 0,
-      },
-      status: {
-        type: Sequelize.ENUM('red', 'green', 'star'),
-        defaultValue: 'red',
+      freq: {
+        type: Sequelize.ENUM(1, 3, 12),
       },
       createdAt: {
         allowNull: false,
@@ -41,7 +30,7 @@ module.exports = {
       updatedAt: {
         allowNull: false,
         type: Sequelize.DATE
-      }
+      },
     });
   },
   down: function(queryInterface, Sequelize) {
