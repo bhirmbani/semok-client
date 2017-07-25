@@ -97,7 +97,7 @@
 <part>id</part>
 </key>
 </table>
-<table x="754" y="551" name="Categories">
+<table x="706" y="551" name="Categories">
 <row name="id" null="1" autoincrement="1">
 <datatype>INTEGER</datatype>
 <default>NULL</default></row>
@@ -127,7 +127,7 @@
 <part>id</part>
 </key>
 </table>
-<table x="772" y="253" name="Infos">
+<table x="772" y="247" name="Infos">
 <row name="id" null="1" autoincrement="1">
 <datatype>INTEGER</datatype>
 <default>NULL</default></row>
@@ -136,9 +136,6 @@
 <default>NULL</default></row>
 <row name="delegateTo" null="1" autoincrement="0">
 <datatype>CHAR</datatype>
-<default>NULL</default></row>
-<row name="currentVal" null="1" autoincrement="0">
-<datatype>FLOAT</datatype>
 <default>NULL</default></row>
 <row name="ItemId" null="1" autoincrement="0">
 <datatype>INTEGER</datatype>
@@ -152,7 +149,7 @@
 <part>id</part>
 </key>
 </table>
-<table x="1043" y="526" name="Notifications">
+<table x="933" y="352" name="Notifications">
 <row name="id" null="1" autoincrement="1">
 <datatype>INTEGER</datatype>
 <default>NULL</default></row>
@@ -160,7 +157,7 @@
 <part>id</part>
 </key>
 </table>
-<table x="772" y="434" name="Units">
+<table x="772" y="423" name="Units">
 <row name="id" null="1" autoincrement="1">
 <datatype>INTEGER</datatype>
 <default>NULL</default></row>
@@ -180,7 +177,7 @@
 <datatype>INTEGER</datatype>
 <default>NULL</default></row>
 <row name="period" null="1" autoincrement="0">
-<datatype>CHAR</datatype>
+<datatype>ENUM</datatype>
 <default>NULL</default></row>
 <row name="base" null="1" autoincrement="0">
 <datatype>DECIMAL</datatype>
@@ -213,7 +210,7 @@
 <datatype>INTEGER</datatype>
 <default>NULL</default></row>
 <row name="period" null="1" autoincrement="0">
-<datatype>CHAR</datatype>
+<datatype>ENUM</datatype>
 <default>NULL</default></row>
 <row name="value" null="1" autoincrement="0">
 <datatype>FLOAT</datatype>
@@ -230,7 +227,7 @@
 <datatype>INTEGER</datatype>
 <default>NULL</default></row>
 <row name="period" null="1" autoincrement="0">
-<datatype>CHAR</datatype>
+<datatype>ENUM</datatype>
 <default>NULL</default></row>
 <row name="value" null="1" autoincrement="0">
 <datatype>DECIMAL</datatype>
@@ -276,7 +273,7 @@
 <datatype>INTEGER</datatype>
 <default>NULL</default></row>
 <row name="period" null="1" autoincrement="0">
-<datatype>CHAR</datatype>
+<datatype>ENUM</datatype>
 <default>NULL</default></row>
 <row name="value" null="1" autoincrement="0">
 <datatype>FLOAT</datatype>
@@ -296,6 +293,52 @@
 <row name="itemId" null="1" autoincrement="0">
 <datatype>INTEGER</datatype>
 <default>NULL</default><relation table="Items" row="id" />
+</row>
+<key type="PRIMARY" name="">
+<part>id</part>
+</key>
+</table>
+<table x="1107" y="531" name="TopCategories">
+<row name="id" null="1" autoincrement="1">
+<datatype>INTEGER</datatype>
+<default>NULL</default></row>
+<row name="name" null="1" autoincrement="0">
+<datatype>CHAR</datatype>
+<default>NULL</default></row>
+<key type="PRIMARY" name="">
+<part>id</part>
+</key>
+</table>
+<table x="901" y="550" name="CategoryTops">
+<row name="id" null="1" autoincrement="1">
+<datatype>INTEGER</datatype>
+<default>NULL</default></row>
+<row name="categoryId" null="1" autoincrement="0">
+<datatype>INTEGER</datatype>
+<default>NULL</default><relation table="Categories" row="id" />
+</row>
+<row name="topCategoryId" null="1" autoincrement="0">
+<datatype>INTEGER</datatype>
+<default>NULL</default><relation table="TopCategories" row="id" />
+</row>
+<key type="PRIMARY" name="">
+<part>id</part>
+</key>
+</table>
+<table x="1143" y="302" name="BobotSums">
+<row name="id" null="1" autoincrement="1">
+<datatype>INTEGER</datatype>
+<default>NULL</default></row>
+<row name="value" null="1" autoincrement="0">
+<datatype>INTEGER</datatype>
+<default>NULL</default></row>
+<row name="workerId" null="1" autoincrement="0">
+<datatype>INTEGER</datatype>
+<default>NULL</default><relation table="Workers" row="id" />
+</row>
+<row name="topCategoryId" null="1" autoincrement="0">
+<datatype>INTEGER</datatype>
+<default>NULL</default><relation table="TopCategories" row="id" />
 </row>
 <key type="PRIMARY" name="">
 <part>id</part>
