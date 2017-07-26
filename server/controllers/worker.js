@@ -22,7 +22,7 @@ methods.create = (req, res, next) => {
     .then((user) => {
       if (!user) {
         if (req.body.password.length < 6) {
-          res.json({ msg: 'password tidak boleh kurang dari enam karakter', ok: false });
+          res.json({ msg: { context: 'Gagal Registeer', content: 'password tidak boleh kurang dari enam karakter' }, ok: false });
         } else if (req.body.role !== 'staff' && req.body.role !== 'asmen' && req.body.role !== 'manager' && req.body.role !== 'admin') {
           res.json({ msg: `pekerja tidak bisa memiliki role ${req.body.role}`, ok: false });
         } else {
@@ -54,12 +54,13 @@ methods.login = (email, password, next) => {
   })
   .then((user) => {
     if (!user) {
-      next(null, { error: 'gagal login', ok: false, msg: 'Email tidak ditemukan' });
+      next(null, { ok: false, msg: { context: 'Gagal Login', content: 'Email tidak ditemukan' } });
     } else if (bcrypt.compareSync(password, user.password)) {
-      const userData = Object.assign({}, user.toJSON());
-      next(null, { msg: 'berhasil login', token: helper.auth(userData), ok: true, user: userData });
+      console.log(user)
+      const userData = Object.assign({ name: user.name });
+      next(null, { msg: { context: 'Berhasil Login', content: 'Selamat datang' }, token: helper.auth(userData), ok: true, user: userData });
     } else {
-      next(null, { msg: 'Password Anda salah', success: false });
+      next(null, { msg: { context: 'Gagal Login', content: 'Maaf password Anda salah. Silakan coba lagi.' }, ok: false });
     }
   });
 };
