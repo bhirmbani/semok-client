@@ -1,5 +1,10 @@
 import React, { Component } from 'react';
-import { Button, Dropdown, Menu } from 'semantic-ui-react'
+import { connect } from 'react-redux';
+import { Link } from 'react-router-dom';
+import { Menu, Button } from 'semantic-ui-react'
+
+import Login from '../components/Login';
+
 
 class Navbar extends Component {
   render() {
@@ -12,7 +17,7 @@ class Navbar extends Component {
             <Button secondary>Add New Item</Button>
           </Menu.Item>
           <Menu.Item>
-            <Button primary>Register</Button>
+            <Login />
           </Menu.Item>
         </Menu.Menu>
       </Menu>
