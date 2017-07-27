@@ -1,7 +1,7 @@
 import * as actionType from './constants';
 
 export const openWelcomeSuccess = () => ({
-  type: actionType.OPEN_WELCOME_SUCCESS,
+  type: actionType.OPEN_WELCOME,
 });
 
 export const openWelcome = () => (dispatch) => {
@@ -9,7 +9,7 @@ export const openWelcome = () => (dispatch) => {
 };
 
 export const closeWelcomeSuccess = () => ({
-  type: actionType.CLOSE_WELCOME_SUCCESS,
+  type: actionType.CLOSE_WELCOME,
 });
 
 export const closeWelcome = () => (dispatch) => {

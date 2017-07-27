@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Container, Grid } from 'semantic-ui-react';
 
-import TableItem from './components/table-item';
+import WelcomeMsg from './components/welcomeMsg';
 import Navbar from './components/navbar';
 
 const styles = {
@@ -23,7 +23,7 @@ class App extends Component {
           &nbsp;
         </div>
         <Container>
-          <TableItem />
+          <WelcomeMsg />
         </Container>
       </div>
     );
