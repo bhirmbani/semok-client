@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import { Button, Header, Icon, Modal, Form, Message } from 'semantic-ui-react';
 import { connect } from 'react-redux';
 
-import { login } from '../actions';
+import { login, openWelcome } from '../actions';
 
 const styles = {
   btnPosition: {
@@ -24,6 +24,15 @@ class Login extends Component {
     this.handleChange = this.handleChange.bind(this);
   }
 
+  onSignIn(e) {
+    e.preventDefault();
+    this.setState({
+      isMsgVisible: true,
+    });
+    this.props.login(this.state.form);
+    this.props.openWelcome();
+  }
+
   handleChange(e) {
     const { name, value } = e.target;
     const { form } = this.state;
@@ -39,24 +48,8 @@ class Login extends Component {
     });
   }
 
-  onSignIn(e) {
-    e.preventDefault();
-    this.setState({
-      // isModalOpened: true,
-      isMsgVisible: true,
-    });
-    setTimeout(() => {
-      this.setState({
-      // isModalOpened: false,
-        isMsgVisible: false,
-      });
-    }, 2000);
-    this.props.login(this.state.form);
-  }
-
   render() {
     const isLoginClicked = this.props.authReducer.userData.ok;
-    const isMsgVisible = this.state.isMsgVisible;
     let msg = null;
     if (isLoginClicked === false) {
       msg = (<Message
@@ -132,6 +125,9 @@ const mapStateToProps = state => ({
 const mapDispatchToProps = dispatch => ({
   login: (data) => {
     dispatch(login(data));
+  },
+  openWelcome: () => {
+    dispatch(openWelcome());
   },
 });
 
