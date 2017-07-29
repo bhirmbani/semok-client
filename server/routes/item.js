@@ -2,19 +2,19 @@ const express = require('express');
 
 const router = express.Router();
 const Item = require('../controllers/item');
+const helper = require('../helpers/verify');
 
-router.post('/', Item.create);
-router.post('/delegate', Item.delegateItem);
-router.post('/description', Item.description);
-// router.post('/progress', Item.updateProgress);
-router.post('/progress', Item.addNewProgress);
-router.post('/target', Item.updateTargetScore);
-router.post('/bobot', Item.updateBobot);
-router.post('/unit', Item.updateUnitName);
-router.get('/', Item.gets);
-router.get('/info', Item.getItemWithInfo);
-router.get('/:itemId', Item.getItemById);
-router.get('/category/:categoryId', Item.getItemByCategoryName);
-router.get('/worker/:workerId', Item.getItemByWorkerName);
+router.post('/', helper.isLogin, Item.create);
+router.post('/delegate', helper.isLogin, Item.delegateItem);
+router.post('/description', helper.isLogin, Item.description);
+router.post('/progress', helper.isLogin, Item.addNewProgress);
+router.post('/target', helper.isLogin, Item.updateTargetScore);
+router.post('/bobot', helper.isLogin, Item.updateBobot);
+router.post('/unit', helper.isLogin, Item.updateUnitName);
+router.get('/', helper.isLogin, Item.gets);
+router.get('/info', helper.isLogin, Item.getItemWithInfo);
+router.get('/:itemId', helper.isLogin, Item.getItemById);
+router.get('/category/:categoryId', helper.isLogin, Item.getItemByCategoryName);
+router.get('/worker/:workerId', helper.isLogin, Item.getItemByWorkerName);
 
 module.exports = router;
