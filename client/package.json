@@ -11,7 +11,6 @@
     "redux": "^3.7.2",
     "redux-logger": "^3.0.6",
     "redux-thunk": "^2.2.0",
-    "semantic-ui-css": "^2.2.11",
     "semantic-ui-react": "^0.71.2"
   },
   "devDependencies": {
