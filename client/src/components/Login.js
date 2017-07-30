@@ -2,8 +2,8 @@ import React, { Component } from 'react';
 import { Button, Header, Icon, Modal, Form, Message } from 'semantic-ui-react';
 import { connect } from 'react-redux';
 
-import { login, openWelcome } from '../actions';
-
+import { userTryingToLogin } from '../actions';
+// openWelcomeMsgIfUserSuccessfullyLogin
 const styles = {
   btnPosition: {
     marginBottom: '20px',
@@ -24,13 +24,13 @@ class Login extends Component {
     this.handleChange = this.handleChange.bind(this);
   }
 
-  onSignIn(e) {
+  onClickSignIn(e) {
     e.preventDefault();
+    this.props.userTryingToLogin(this.state.form);
+    // this.props.openWelcomeMsgIfUserSuccessfullyLogin()
     this.setState({
       isMsgVisible: true,
-    });
-    this.props.login(this.state.form);
-    this.props.openWelcome();
+    }); // ganti jadi ke redux bukan local state
   }
 
   handleChange(e) {
@@ -49,37 +49,38 @@ class Login extends Component {
   }
 
   render() {
-    const isLoginClicked = this.props.authReducer.userData.ok;
+    const isLoginSuccess = this.props.authReducer.userData.ok;
     let msg = null;
-    if (isLoginClicked === false) {
+    if (isLoginSuccess === false) {
       msg = (<Message
         header={this.props.authReducer.userData.msg.context}
         content={this.props.authReducer.userData.msg.content}
         negative
         icon="remove circle"
       />);
-    } else if (isLoginClicked === true) {
-      msg = (<Message
-        header={this.props.authReducer.userData.msg.context}
-        content={`${this.props.authReducer.userData.msg.content}, ${this.props.authReducer.userData.user.name}`}
-        positive
-        icon="info"
-      />);
     }
+    // else if (isLoginSuccess === true) {
+    //   msg = (<Message
+    //     header={this.props.authReducer.userData.msg.context}
+    //     content={`${this.props.authReducer.userData.msg.content}, ${this.props.authReducer.userData.user.name}`}
+    //     positive
+    //     icon="info"
+    //   />);
+    // }
     return (
       <div>
         <Modal
           trigger={<Button primary onClick={() => this.setState({ isModalOpened: true })}>
-            <Icon name="sign in" />Login</Button>}
+            <Icon name="sign in" />Masuk</Button>}
           closeIcon="close"
           size="small"
           closeOnDimmerClick={false}
           open={this.state.isModalOpened}
-          onClose={() => this.setState({ isModalOpened: false })}
+          onClose={() => this.setState({ isModalOpened: false, form: { email: '', password: '' } })}
         >
-          <Header icon="sign in" content="Login" />
+          <Header icon="sign in" content="Masuk" />
           <Modal.Content>
-            <Form onSubmit={e => this.onSignIn(e)}>
+            <Form onSubmit={e => this.onClickSignIn(e)}>
               {msg}
               <Form.Field>
                 <label>Email</label>
@@ -106,7 +107,7 @@ class Login extends Component {
                 floated="right"
                 style={styles.btnPosition}
               >
-                <Icon name="sign in" />
+                <Icon name="checkmark" />
               Submit
               </Button>
 
@@ -120,15 +121,16 @@ class Login extends Component {
 
 const mapStateToProps = state => ({
   authReducer: state.authReducer,
+  msgReducer: state.msgReducer,
 });
 
 const mapDispatchToProps = dispatch => ({
-  login: (data) => {
-    dispatch(login(data));
+  userTryingToLogin: (data) => {
+    dispatch(userTryingToLogin(data));
   },
-  openWelcome: () => {
-    dispatch(openWelcome());
-  },
+  // openWelcomeMsgIfUserSuccessfullyLogin: () => {
+  //   dispatch(openWelcomeMsgIfUserSuccessfullyLogin());
+  // },
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Login);

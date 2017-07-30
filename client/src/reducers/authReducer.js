@@ -4,14 +4,14 @@ const initialState = {
   userData: '',
 };
 
-const loginResult = (state, payload) => {
+const getUserDataAfterUserTryingToLogin = (state, payload) => {
   const newState = {
     userData: payload,
   };
   return newState;
 };
 
-const logoutResult = (state) => {
+const logoutResult = () => {
   const newState = {
     ...initialState,
   };
@@ -20,8 +20,8 @@ const logoutResult = (state) => {
 
 const authReducer = (state = initialState, { type, payload }) => {
   switch (type) {
-    case actionType.LOGIN_RESULT:
-      return loginResult(state, payload);
+    case actionType.GET_USER_DATA_AFTER_USER_TRYING_TO_LOGIN:
+      return getUserDataAfterUserTryingToLogin(state, payload);
     case actionType.LOGOUT_RESULT:
       return logoutResult(state);
     default:

@@ -1,10 +1,11 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-import { Link } from 'react-router-dom';
-import { Menu, Button, Icon, Message } from 'semantic-ui-react';
+// import { Link } from 'react-router-dom';
+import { Menu, Button, Icon } from 'semantic-ui-react';
 
 import Login from '../components/Login';
-import { logout, loginFalse } from '../actions';
+import AddItemFormModal from '../components/addItemFormModal';
+import { logout } from '../actions';
 
 
 class Navbar extends Component {
@@ -16,7 +17,7 @@ class Navbar extends Component {
   }
 
   render() {
-    const isLogin = this.props.msgReducer.status.login;
+    const isLogin = this.props.msgReducer.loginStatus.isUserSuccessfullyLogin;
     const isToken = localStorage.getItem('token');
     let btn = null;
     if (isLogin || isToken) {
@@ -26,7 +27,7 @@ class Navbar extends Component {
           floated="right"
           color="red"
         >
-          <Icon name="sign out" />Logout
+          <Icon name="sign out" />Keluar
         </Button>
       </div>
       );
@@ -39,9 +40,9 @@ class Navbar extends Component {
           <Menu.Item name="SEMOK" />
 
           <Menu.Menu position="right">
-            <Menu.Item>
-              <Button secondary>Add New Item</Button>
-            </Menu.Item>
+            {(isLogin || isToken) && <Menu.Item>
+              <AddItemFormModal />
+            </Menu.Item>}
             <Menu.Item>
               {btn}
             </Menu.Item>
