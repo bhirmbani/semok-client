@@ -38,3 +38,22 @@ export const addItem = itemData => (dispatch) => {
       }
     });
 };
+
+export const delegateItem = delegateData => (dispatch) => {
+  axios.post('http://localhost:3000/api/item/delegate', delegateData, {
+    headers: { token: localStorage.getItem('token') },
+  })
+    .then((res) => {
+      if (res.data.ok) {
+        dispatch({
+          type: actionType.OPEN_SUCCESS_MSG_IN_DELEGATING_ITEM,
+          payload: res.data.msg,
+        });
+      } else {
+        dispatch({
+          type: actionType.OPEN_ERR_MSG_IN_DELEGATING_ITEM,
+          payload: res.data.msg,
+        });
+      }
+    });
+};

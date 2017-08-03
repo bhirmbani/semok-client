@@ -49,9 +49,9 @@ class Login extends Component {
   }
 
   render() {
-    const isLoginSuccess = this.props.authReducer.userData.ok;
+    const isLoginMsgShowed = this.props.authReducer.userData.msg.context;
     let msg = null;
-    if (isLoginSuccess === false) {
+    if (isLoginMsgShowed) {
       msg = (<Message
         header={this.props.authReducer.userData.msg.context}
         content={this.props.authReducer.userData.msg.content}
@@ -59,7 +59,7 @@ class Login extends Component {
         icon="remove circle"
       />);
     }
-    // else if (isLoginSuccess === true) {
+    // else if (isLoginMsgShowed === true) {
     //   msg = (<Message
     //     header={this.props.authReducer.userData.msg.context}
     //     content={`${this.props.authReducer.userData.msg.content}, ${this.props.authReducer.userData.user.name}`}

@@ -1,17 +1,51 @@
 import * as actionType from '../actions/constants';
 
 const initialState = {
-  userData: '',
+  userData: {
+    msg: {
+      context: null,
+      content: null,
+    },
+    user: {
+      name: null,
+    },
+  },
 };
 
 const getUserDataAfterUserTryingToLogin = (state, payload) => {
-  const newState = {
-    userData: payload,
-  };
+  console.log(state, payload);
+  let newState = {};
+  if (payload.ok) {
+    newState = {
+      userData: {
+        msg: {
+          context: payload.msg.context,
+          content: payload.msg.content,
+        },
+        user: {
+          name: payload.user.name,
+          role: payload.user.role,
+        },
+      },
+    };
+  } else {
+    newState = {
+      userData: {
+        msg: {
+          context: payload.msg.context,
+          content: payload.msg.content,
+        },
+        user: {
+          name: null,
+        },
+      },
+    };
+  }
+  console.log(newState);
   return newState;
 };
 
-const logoutResult = () => {
+const clearUserDataAfterUserLogout = () => {
   const newState = {
     ...initialState,
   };
@@ -22,8 +56,8 @@ const authReducer = (state = initialState, { type, payload }) => {
   switch (type) {
     case actionType.GET_USER_DATA_AFTER_USER_TRYING_TO_LOGIN:
       return getUserDataAfterUserTryingToLogin(state, payload);
-    case actionType.LOGOUT_RESULT:
-      return logoutResult(state);
+    case actionType.CLEAR_USER_DATA_AFTER_USER_LOGOUT:
+      return clearUserDataAfterUserLogout(state);
     default:
       return state;
   }

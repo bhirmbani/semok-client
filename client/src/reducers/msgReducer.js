@@ -4,6 +4,7 @@ const initialState = {
   loginStatus: {
     isWelcomeMsgShowed: false,
     isUserSuccessfullyLogin: false,
+    isSidebar: true,
   },
   addItem: {
     msg: {
@@ -13,6 +14,15 @@ const initialState = {
       isErrMsgShowed: false,
       isModalOpened: false,
       isSuccessMsgShowed: false,
+    },
+  },
+  delegateItem: {
+    msg: {
+      context: null,
+      content: null,
+      ok: null,
+      isSuccessMsgShowed: false,
+      isErrMsgShowed: false,
     },
   },
 };
@@ -40,6 +50,7 @@ const openWelcomeMsgIfUserSuccessfullyLogin = (state) => {
     loginStatus: {
       isWelcomeMsgShowed: true,
       isUserSuccessfullyLogin: true,
+      isSidebar: state.loginStatus.isSidebar,
     },
   };
   return newState;
@@ -51,6 +62,7 @@ const closeWelcomeMsg = (state) => {
     loginStatus: {
       isWelcomeMsgShowed: false,
       isUserSuccessfullyLogin: true,
+      isSidebar: state.loginStatus.isSidebar,
     },
   };
   return newState;
@@ -62,17 +74,19 @@ const loginStatusTrue = (state) => {
     loginStatus: {
       isWelcomeMsgShowed: true,
       isUserSuccessfullyLogin: true,
+      isSidebar: state.loginStatus.isSidebar,
     },
   };
   return newState;
 };
 
-const loginStatusFalse = (state) => {
+const setIsUserSuccessfullyLoginToFalse = (state) => {
   const newState = {
     ...state,
     loginStatus: {
       isWelcomeMsgShowed: false,
       isUserSuccessfullyLogin: false,
+      isSidebar: false,
     },
   };
   return newState;
@@ -131,9 +145,11 @@ const closeAddItemFormModal = (state) => {
 
 const msgFromAddItemSuccess = (state, payload) => {
   const newState = {
+    ...state,
     loginStatus: {
       isUserSuccessfullyLogin: true,
       isWelcomeMsgShowed: false,
+      isSidebar: state.loginStatus.isSidebar,
     },
     addItem: {
       msg: {
@@ -166,6 +182,82 @@ const closeErrMsgInAddItemForm = (state) => {
   return newState;
 };
 
+const removeSidebarwhenUserClickLogout = (state) => {
+  const newState = {
+    ...state,
+    loginStatus: {
+      isSidebar: false,
+      isUserSuccessfullyLogin: false,
+      isWelcomeMsgShowed: false,
+    },
+  };
+  return newState;
+};
+
+const openSuccessMsgInDelegatingItem = (state, payload) => {
+  const newState = {
+    ...state,
+    delegateItem: {
+      msg: {
+        context: 'Berhasil Delegasikan Item',
+        content: payload,
+        ok: true,
+        isSuccessMsgShowed: true,
+        isErrMsgShowed: false,
+      },
+    },
+  };
+  return newState;
+};
+
+const openErrMsgInDelegatingItem = (state, payload) => {
+  const newState = {
+    ...state,
+    delegateItem: {
+      msg: {
+        context: 'Gagal Delegasikan Item',
+        content: payload,
+        ok: false,
+        isSuccessMsgShowed: false,
+        isErrMsgShowed: true,
+      },
+    },
+  };
+  return newState;
+};
+
+const closeSuccessMsgInDelegatingItem = (state) => {
+  const newState = {
+    ...state,
+    delegateItem: {
+      msg: {
+        context: null,
+        content: null,
+        ok: null,
+        isSuccessMsgShowed: false,
+        isErrMsgShowed: false,
+      },
+    },
+  };
+  return newState;
+};
+
+const closeErrMsgInDelegatingItem = (state) => {
+  const newState = {
+    ...state,
+    delegateItem: {
+      msg: {
+        context: null,
+        content: null,
+        ok: null,
+        isSuccessMsgShowed: false,
+        isErrMsgShowed: false,
+      },
+    },
+  };
+  return newState;
+};
+
 const msgReducer = (state = initialState, { type, payload }) => {
   switch (type) {
     case actionType.OPEN_WELCOME_MSG_IF_USER_SUCCESSFULLY_LOGIN:
@@ -177,8 +269,11 @@ const msgReducer = (state = initialState, { type, payload }) => {
     case actionType.LOGIN_TRUE:
       return loginStatusTrue(state);
 
-    case actionType.LOGIN_FALSE:
-      return loginStatusFalse(state);
+    case actionType.SET_IS_USER_SUCCESSFULLY_LOGIN_TO_FALSE:
+      return setIsUserSuccessfullyLoginToFalse(state);
+
+    case actionType.REMOVE_SIDEBAR_WHEN_USER_CLICK_LOGOUT:
+      return removeSidebarwhenUserClickLogout(state);
 
     case actionType.SHOW_MSG_FROM_ADD_ITEM_ERROR:
       return showErrMsgIfAddItemError(state, payload);
@@ -197,6 +292,18 @@ const msgReducer = (state = initialState, { type, payload }) => {
 
     case actionType.CLOSE_ERR_MSG_IN_ADD_ITEM_FORM:
       return closeErrMsgInAddItemForm(state);
+
+    case actionType.OPEN_SUCCESS_MSG_IN_DELEGATING_ITEM:
+      return openSuccessMsgInDelegatingItem(state, payload);
+
+    case actionType.OPEN_ERR_MSG_IN_DELEGATING_ITEM:
+      return openErrMsgInDelegatingItem(state, payload);
+
+    case actionType.CLOSE_SUCCESS_MSG_IN_DELEGATING_ITEM:
+      return closeSuccessMsgInDelegatingItem(state);
+
+    case actionType.CLOSE_ERR_MSG_IN_DELEGATING_ITEM:
+      return closeErrMsgInDelegatingItem(state);
 
     default:
       return state;

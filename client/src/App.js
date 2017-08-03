@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
 import { Container } from 'semantic-ui-react';
+import { BrowserRouter, Route } from 'react-router-dom';
 
-import MsgAtTheBottomOfNavbar from './components/msgAtTheBottomOfNavbar';
 import Navbar from './components/navbar';
+import Sidebar from './components/sidebar';
 
 const styles = {
   position: {
@@ -17,15 +18,17 @@ const styles = {
 class App extends Component {
   render() {
     return (
-      <div style={styles.position}>
-        <Navbar />
-        <div style={styles.spacer}>
+      <BrowserRouter>
+        <div style={styles.position}>
+          <Navbar />
+          <div style={styles.spacer}>
           &nbsp;
+          </div>
+          <Container>
+            <Route path="/" component={Sidebar} />
+          </Container>
         </div>
-        <Container>
-          <MsgAtTheBottomOfNavbar />
-        </Container>
-      </div>
+      </BrowserRouter>
     );
   }
 }

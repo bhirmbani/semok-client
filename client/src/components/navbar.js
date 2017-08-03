@@ -1,12 +1,15 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux';
-// import { Link } from 'react-router-dom';
 import { Menu, Button, Icon } from 'semantic-ui-react';
+import createHistory from 'history/createBrowserHistory';
 
 import Login from '../components/Login';
 import AddItemFormModal from '../components/addItemFormModal';
 import { logout } from '../actions';
 
+
+const history = createHistory();
+// const location = history.location;
 
 class Navbar extends Component {
   constructor(props) {
@@ -23,11 +26,12 @@ class Navbar extends Component {
     if (isLogin || isToken) {
       btn = (<div>
         <Button
-          onClick={() => this.props.logout()}
+          onClick={() => { this.props.logout(); history.replace({ pathname: '/' }); document.location.href = '/'; }}
           floated="right"
           color="red"
         >
-          <Icon name="sign out" />Keluar
+          <Icon name="sign out" />
+          Keluar
         </Button>
       </div>
       );

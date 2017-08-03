@@ -9,7 +9,7 @@ class MsgAtTheBottomOfNavbar extends Component {
   render() {
     const isToken = localStorage.getItem('token');
     let items = null;
-    if (!isToken) {
+    if (!isToken && !this.props.msgReducer.loginStatus.isUserSuccessfullyLogin) {
       items = (<Message
         header="Tidak ada data"
         content="Anda harus login dulu untuk mengakses item KPI"
@@ -21,8 +21,9 @@ class MsgAtTheBottomOfNavbar extends Component {
     }
     return (
       <div>
-        { /* di bawah ini adalah welcome message yang muncul saat user berhasil login */}
-        { (this.props.msgReducer.loginStatus.isUserSuccessfullyLogin &&
+        <div>
+          { /* di bawah ini adalah welcome message yang muncul saat user berhasil login */}
+          { (this.props.msgReducer.loginStatus.isUserSuccessfullyLogin &&
           this.props.msgReducer.loginStatus.isWelcomeMsgShowed) &&
           <Message
             header={this.props.authReducer.userData.msg.context}
@@ -31,7 +32,6 @@ class MsgAtTheBottomOfNavbar extends Component {
             icon="info"
             onDismiss={() => this.props.closeWelcomeMsg()}
           /> }
-        <div>
           {items}
         </div>
       </div>

@@ -1,7 +1,11 @@
 import axios from 'axios';
 import * as actionType from './constants';
-import { openWelcomeMsgIfUserSuccessfullyLogin, loginFalse } from './msgActions';
-// openWelcome
+import {
+  openWelcomeMsgIfUserSuccessfullyLogin,
+  setIsUserSuccessfullyLoginToFalse,
+  removeSidebarWhenUserClickLogout,
+} from './msgActions';
+
 export const getUserDataAfterUserTryingToLogin = userData => ({
   type: actionType.GET_USER_DATA_AFTER_USER_TRYING_TO_LOGIN,
   payload: userData,
@@ -12,11 +16,11 @@ export const userTryingToLogin = loginData => (dispatch) => {
     .then((res) => {
       if (res.data.ok) {
         const token = res.data.token;
-        const name = res.data.user.name;
-        const role = res.data.user.role;
+        // const name = res.data.user.name;
+        // const role = res.data.user.role;
         localStorage.setItem('token', token);
-        localStorage.setItem('name', name);
-        localStorage.setItem('role', role);
+        // localStorage.setItem('name', name);
+        // localStorage.setItem('role', role);
         dispatch(getUserDataAfterUserTryingToLogin(res.data)); // if login success welcome msg will be showed
         dispatch(openWelcomeMsgIfUserSuccessfullyLogin());
       } else {
@@ -25,13 +29,13 @@ export const userTryingToLogin = loginData => (dispatch) => {
     });
 };
 
-export const logoutResult = () => ({
-  type: actionType.LOGOUT_RESULT,
+export const clearUserDataAfterUserLogout = () => ({
+  type: actionType.CLEAR_USER_DATA_AFTER_USER_LOGOUT,
 });
 
 export const logout = () => (dispatch) => {
-  dispatch(logoutResult());
-  dispatch(loginFalse());
-  // dispatch(openWelcome()); // ini ganti jadi close welcome kalo logout
   localStorage.clear();
+  dispatch(clearUserDataAfterUserLogout());
+  dispatch(setIsUserSuccessfullyLoginToFalse());
+  dispatch(removeSidebarWhenUserClickLogout());
 };

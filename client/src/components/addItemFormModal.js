@@ -32,11 +32,6 @@ class AddItemFormModal extends Component {
     this.closeModalIfItemAddedSuccessfully();
   }
 
-  validate(value) {
-    const number = new RegExp('^(?=.*[0-9])');
-    return number.test(value);
-  }
-
   closeModalIfItemAddedSuccessfully() {
     if (this.props.msgReducer.addItem.msg.context === 'Terimakasih') {
       this.setState({ isModalOpened: false });
@@ -59,7 +54,6 @@ class AddItemFormModal extends Component {
   }
 
   render() {
-    console.log(this.validate(this.state.form.value));
     const { form } = this.state;
     const msg = <ErrMsgInAddItemForm />;
     return (
@@ -103,7 +97,10 @@ class AddItemFormModal extends Component {
                   fluid
                   selection
                   name="freq"
-                  onChange={(e, { value }) => { const tempState = { ...form }; tempState.freq = value; this.setState({ form: tempState }); }}
+                  onChange={(e, { value }) => {
+                    const tempState = { ...form }; tempState.freq = value;
+                    this.setState({ form: tempState });
+                  }}
                   options={[
                     { text: 'setiap bulan', value: '1' },
                     { text: 'setiap triwulan', value: '3' },
@@ -116,7 +113,7 @@ class AddItemFormModal extends Component {
                 <input
                   placeholder="bobot untuk item ini (dalam persen)"
                   name="value"
-                  type="text"
+                  type="number"
                   onChange={this.handleChange}
                   required
                 />

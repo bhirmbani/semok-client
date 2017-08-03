@@ -26,12 +26,22 @@ export const loginTrue = () => (dispatch) => {
   dispatch(loginTrueResult());
 };
 
-export const loginFalseResult = () => ({
-  type: actionType.LOGIN_FALSE,
-});
+export const setIsUserSuccessfullyLoginToFalse = () => (dispatch) => {
+  dispatch({
+    type: actionType.SET_IS_USER_SUCCESSFULLY_LOGIN_TO_FALSE,
+  });
+};
 
-export const loginFalse = () => (dispatch) => {
-  dispatch(loginFalseResult());
+export const closeSuccessMsgInDelegatingItem = () => (dispatch) => {
+  dispatch({
+    type: actionType.CLOSE_SUCCESS_MSG_IN_DELEGATING_ITEM,
+  });
+};
+
+export const closeErrMsgInDelegatingItem = () => (dispatch) => {
+  dispatch({
+    type: actionType.CLOSE_ERR_MSG_IN_DELEGATING_ITEM,
+  });
 };
 
 export const msgFromAddItemError = errMsg => ({
@@ -59,5 +69,11 @@ export const openModal = () => (dispatch) => {
 export const closeSuccessAddItemMsgInBelowNavbar = () => (dispatch) => {
   dispatch({
     type: actionType.CLOSE_SUCCESS_ADD_ITEM_MSG_IN_BELOW_NAVBAR,
+  });
+};
+
+export const removeSidebarWhenUserClickLogout = () => (dispatch) => {
+  dispatch({
+    type: actionType.REMOVE_SIDEBAR_WHEN_USER_CLICK_LOGOUT,
   });
 };
