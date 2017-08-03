@@ -56,13 +56,71 @@ methods.login = (email, password, next) => {
     if (!user) {
       next(null, { ok: false, msg: { context: 'Gagal Login', content: 'Email tidak ditemukan' } });
     } else if (bcrypt.compareSync(password, user.password)) {
-      console.log(user)
-      const userData = Object.assign({ name: user.name, role: user.role, id: user.id });
+      console.log(user);
+      const userData = Object.assign({ name: user.name, role: user.role, id: user.id, ok: true });
       next(null, { msg: { context: 'Berhasil Login', content: 'Selamat datang' }, token: helper.auth(userData), ok: true, user: userData });
     } else {
       next(null, { msg: { context: 'Gagal Login', content: 'Maaf password Anda salah. Silakan coba lagi.' }, ok: false });
     }
   });
+};
+
+methods.getWorkerThatHasNoItemYet = (req, res, next) => {
+  const itemId = req.params.itemId;
+  if (!req.headers.token) {
+    res.json({ msg: 'butuh jwt token untuk mengupdate nama unit', ok: false });
+  } else {
+    models.Item.findOne({
+      where: {
+        id: itemId,
+      },
+    })
+    .then((item) => {
+      if (!item) {
+        res.json({ msg: `tidak ada item dengan id ${itemId}`, ok: false });
+      } else {
+        models.Worker.findAll()
+        .then((workers) => {
+          const workerDataForDropdown = [];
+          const admin = [];
+          workers.map((val) => {
+            const obj = {};
+            if (val.role !== 'admin') {
+              obj.text = val.name;
+              obj.value = val.id;
+              workerDataForDropdown.push(obj);
+            }
+          });
+          item.getWorkers()
+          .then((itemWithWorkers) => {
+            const filteredWorker = workerDataForDropdown
+            .filter(ori => itemWithWorkers
+              .filter(compare => (compare.name === ori.text)).length === 0);
+            res.json({ item, filteredWorker });
+          });
+        });
+      }
+    });
+  }
+};
+
+methods.getWorkersWithoutAdmin = (req, res, next) => {
+  if (!req.headers.token) {
+    res.json({ msg: 'butuh jwt token untuk mendapatkan data pekerja', ok: false });
+  } else {
+    models.Worker.findAll({
+      where: {
+        role: {
+          $not: 'admin',
+        },
+      },
+      attributes: [['name', 'text'], ['name', 'value']],
+      // { exclude: ['password', 'email', 'createdAt', 'updatedAt', 'role'] }
+    })
+    .then((workers) => {
+      res.json({ ok: true, workers });
+    });
+  }
 };
 
 module.exports = methods;

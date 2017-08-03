@@ -13,10 +13,13 @@ methods.create = (req, res, next) => {
     const value = req.body.value;
     const createdBy = decoded.name;
     const freq = req.body.freq;
+    const number = new RegExp('^(?=.*[0-9])');
     if (!req.body.name) {
-      res.json({ msg: 'nama item harus diisi', ok: false });
+      res.json({ msg: { context: 'Gagal buat item', content: 'nama item harus diisi' }, ok: false });
     } else if (!req.body.freq) {
-      res.json({ msg: 'data freq harus diisi', ok: false });
+      res.json({ msg: { context: 'Gagal buat item', content: 'frekuensi pelaporan item harus diisi' }, ok: false });
+    } else if (!number.test(value)) {
+      res.json({ msg: { context: 'Gagal buat item', content: 'Bobot harus berupa angka dan tidak ada huruf' }, ok: false });
     } else {
       models.Item.findOne({
         where: { name },
@@ -38,92 +41,107 @@ methods.create = (req, res, next) => {
             ItemId: item.id,
             WorkerId: decoded.id,
           })
-          .then((bobotRef) => {
-            models.WorkerItem.create({
-              itemId: item.id,
-              workerId: decoded.id,
-            })
-          .then((workerItemRef) => {
-            models.Info.create({
-              ItemId: item.id,
-              WorkerId: decoded.id,
-            })
-            .then((infoRef) => {
-              models.Unit.create({
-                ItemId: item.id,
+            .then((bobotRef) => {
+              models.WorkerItem.create({
+                itemId: item.id,
+                workerId: decoded.id,
               })
-              .then((unitRef) => {
-                if (item.freq === '3') {
-                  for (let i = 3; i <= 12; i += 3) {
-                    models.Target.create({
-                      period: i.toString(),
-                    })
-                    .then((target) => {
-                      models.TargetItem.create({
-                        itemId: item.id,
-                        targetId: target.id,
-                      });
-                      models.Progress.create({
-                        period: i.toString(),
-                      })
-                      .then((progress) => {
-                        models.ProgressItem.create({
-                          progressId: progress.id,
-                          itemId: item.id,
-                        });
-                      });
-                    });
-                  }
-                } else if (item.freq === '1') {
-                  for (let i = 1; i <= 12; i += 1) {
-                    models.Target.create({
-                      period: i.toString(),
-                    })
-                    .then((target) => {
-                      models.TargetItem.create({
-                        itemId: item.id,
-                        targetId: target.id,
-                      });
-                      models.Progress.create({
-                        period: i.toString(),
-                      })
-                      .then((progress) => {
-                        models.ProgressItem.create({
-                          progressId: progress.id,
-                          itemId: item.id,
-                        });
-                      });
-                    });
-                  }
-                } else {
-                  models.Target.create({
-                    period: '12',
+              .then((workerItemRef) => {
+                models.Info.create({
+                  ItemId: item.id,
+                  WorkerId: decoded.id,
+                })
+                .then((infoRef) => {
+                  models.Unit.create({
+                    ItemId: item.id,
                   })
-                  .then((target) => {
-                    models.TargetItem.create({
-                      itemId: item.id,
-                      targetId: target.id,
-                    });
-                    models.Progress.create({
-                      period: '12',
+                  .then((unitRef) => {
+                    models.Item.findOne({
+                      where: { id: item.id },
+                      include: [{
+                        model: models.Worker,
+                      },
+                      {
+                        model: models.Category,
+                        include: [{
+                          model: models.TopCategory,
+                        }],
+                      },
+                      ],
                     })
-                    .then((progress) => {
-                      models.ProgressItem.create({
-                        progressId: progress.id,
-                        itemId: item.id,
-                      });
+                    .then((createdItem) => {
+                      if (item.freq === '3') {
+                        for (let i = 3; i <= 12; i += 3) {
+                          models.Target.create({
+                            period: i.toString(),
+                          })
+                          .then((target) => {
+                            models.TargetItem.create({
+                              itemId: item.id,
+                              targetId: target.id,
+                            });
+                            models.Progress.create({
+                              period: i.toString(),
+                            })
+                            .then((progress) => {
+                              models.ProgressItem.create({
+                                progressId: progress.id,
+                                itemId: item.id,
+                              });
+                            });
+                          });
+                        }
+                      } else if (item.freq === '1') {
+                        for (let i = 1; i <= 12; i += 1) {
+                          models.Target.create({
+                            period: i.toString(),
+                          })
+                          .then((target) => {
+                            models.TargetItem.create({
+                              itemId: item.id,
+                              targetId: target.id,
+                            });
+                            models.Progress.create({
+                              period: i.toString(),
+                            })
+                            .then((progress) => {
+                              models.ProgressItem.create({
+                                progressId: progress.id,
+                                itemId: item.id,
+                              });
+                            });
+                          });
+                        }
+                      } else {
+                        models.Target.create({
+                          period: '12',
+                        })
+                        .then((target) => {
+                          models.TargetItem.create({
+                            itemId: item.id,
+                            targetId: target.id,
+                          });
+                          models.Progress.create({
+                            period: '12',
+                          })
+                          .then((progress) => {
+                            models.ProgressItem.create({
+                              progressId: progress.id,
+                              itemId: item.id,
+                            });
+                          });
+                        });
+                      }
+                      res.json({ createdItem, unitRef, infoRef, bobotRef, workerItemRef, item, ok: true, msg: { context: 'Terimakasih', content: `Item baru dengan nama ${createdItem.name} berhasil dibuat` } });
                     });
                   });
-                }
-                res.json({ unitRef, infoRef, bobotRef, workerItemRef, item, ok: true, msg: 'item baru berhasil dibuat' });
+                });
               });
             });
-          });
-          });
         }
       });
         } else {
-          res.json({ msg: `gagal membuat item karena item ${name} sudah ada.`, ok: false });
+          res.json({ msg: { context: 'Gagal buat item', content: `item dengan nama ${name} sudah ada.` }, ok: false });
         }
       });
     }
@@ -498,7 +516,17 @@ methods.delegateItem = (req, res, next) => {
               })
               .then((item) => {
                 if (item === null) {
-                  res.json({ ref: '454', msg: 'item ini bukan milik Anda', ok: false });
+                  models.Item.findOne({
+                    where: { id: req.body.itemId },
+                  })
+                  .then((itemName) => {
+                    models.Worker.findOne({
+                      where: { id: req.body.workerId },
+                    })
+                    .then((workerName) => {
+                      res.json({ ref: '454', msg: `Anda harus login dulu sebagai ${itemName.createdBy} untuk bisa mendelegasikan item ${itemName.name} kepada ${workerName.name}`, ok: false });
+                    });
+                  });
                 } else {
                   // item milik yang login
                   const itemId = req.body.itemId;
@@ -545,7 +573,17 @@ methods.delegateItem = (req, res, next) => {
               })
               .then((item) => {
                 if (item === null) {
-                  res.json({ ref: '548', msg: 'item ini bukan milik Anda', ok: false });
+                  models.Item.findOne({
+                    where: { id: req.body.itemId },
+                  })
+                  .then((itemName) => {
+                    models.Worker.findOne({
+                      where: { id: req.body.workerId },
+                    })
+                    .then((workerName) => {
+                      res.json({ ref: '548', msg: `Anda harus login dulu sebagai ${itemName.createdBy} untuk bisa mendelegasikan item ${itemName.name} kepada ${workerName.name}`, ok: false });
+                    });
+                  });
                 } else {
                   // item milik yang login
                   const itemId = req.body.itemId;

@@ -12,5 +12,6 @@ router.delete('/:categoryId', helper.isLogin, Category.delete);
 router.put('/:categoryId', helper.isLogin, Category.edit);
 router.get('/', helper.isLogin, Category.gets);
 router.get('/top', helper.isLogin, Category.getsTopCategory);
+router.get('/for-filtering-item', helper.isLogin, Category.getCategoriesForFilteringItem);
 
 module.exports = router;

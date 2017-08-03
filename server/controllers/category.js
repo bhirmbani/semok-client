@@ -331,4 +331,22 @@ methods.create = (req, res, next) => {
   }
 };
 
+methods.getCategoriesForFilteringItem = (req, res, next) => {
+  if (!req.headers.token) {
+    res.json({ msg: 'butuh jwt token untuk mengambil data kategori', ok: false });
+  } else {
+    models.Category.findAll({
+      attributes: [['name', 'text'], ['id', 'value']],
+    })
+    .then((categories) => {
+      const noCategory = {
+        value: 0,
+        text: 'tidak ada kategori',
+      };
+      categories.push(noCategory);
+      res.json({ ok: true, categories });
+    });
+  }
+};
+
 module.exports = methods;
