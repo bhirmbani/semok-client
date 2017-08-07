@@ -13,8 +13,11 @@ router.post('/bobot', helper.isLogin, Item.updateBobot);
 router.post('/unit', helper.isLogin, Item.updateUnitName);
 router.get('/', helper.isLogin, Item.gets);
 router.get('/info', helper.isLogin, Item.getItemWithInfo);
+router.get('/deviation/:itemId/:period', helper.isLogin, Item.getItemDeviationInCertainPeriod);
+router.get('/name-and-id', helper.isLogin, Item.getItemsNameAndId);
 router.get('/:itemId', helper.isLogin, Item.getItemById);
 router.get('/category/:categoryId', helper.isLogin, Item.getItemByCategoryName);
 router.get('/worker/:workerId', helper.isLogin, Item.getItemByWorkerName);
+router.get('/:itemId/target/', helper.isLogin, Item.getItemWithTargets);
 
 module.exports = router;

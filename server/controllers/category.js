@@ -343,7 +343,11 @@ methods.getCategoriesForFilteringItem = (req, res, next) => {
         value: 0,
         text: 'tidak ada kategori',
       };
-      categories.push(noCategory);
+      const allCategory = {
+        value: 'semua',
+        text: 'semuanya',
+      };
+      categories.push(noCategory, allCategory);
       res.json({ ok: true, categories });
     });
   }

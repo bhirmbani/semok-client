@@ -118,6 +118,11 @@ methods.getWorkersWithoutAdmin = (req, res, next) => {
       // { exclude: ['password', 'email', 'createdAt', 'updatedAt', 'role'] }
     })
     .then((workers) => {
+      const allItemValue = {
+        text: 'semua',
+        value: 'semua',
+      };
+      workers.push(allItemValue);
       res.json({ ok: true, workers });
     });
   }

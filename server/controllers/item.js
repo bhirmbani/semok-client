@@ -3,6 +3,45 @@ const helper = require('../helpers/verify');
 
 const methods = {};
 
+const processStatsValue = (progress, base, stretch) => {
+  const result = {
+    value: null,
+    stats: null,
+  };
+  if (base > stretch) {
+    if (progress > base) {
+      result.value = (1 - (progress - base) / base) * 100;
+      result.stats = 'red';
+    } else if (progress === base) {
+      result.value = (1 + (progress - base) / base) * 100;
+      result.stats = 'green';
+    } else if (progress < base && progress > stretch) {
+      result.value = (120 / (100 - ((progress - stretch) * (120 - 100) / (stretch - base)))) * 100;
+      result.stats = 'green';
+    } else if (progress <= stretch) {
+      result.value = 120;
+      result.stats = 'star';
+    }
+    return result;
+  } else if (base < stretch) {
+    if (progress === base) {
+      result.value = (1 + (progress - base) / base) * 100;
+      result.stats = 'green';
+    } else if (progress > base && progress < stretch) {
+      result.value = (105 / (100 + ((progress - stretch) * (105 - 100) / (base - stretch)))) * 100;
+      result.stats = 'green';
+    } else if (progress < base) {
+      result.value = (1 + (progress - base) / base) * 100;
+      result.stats = 'red';
+    } else if (progress > base) {
+      result.stats = 'star';
+      result.value = (105 / (100 + ((progress - stretch) * (105 - 100) / (base - stretch)))) * 100;
+    }
+    if (result.value < 0) result.value = 105;
+    return result;
+  }
+};
+
 methods.create = (req, res, next) => {
   if (!req.headers.token) {
     res.json({ msg: 'butuh jwt token untuk membuat item baru', ok: false });
@@ -153,6 +192,7 @@ methods.gets = (req, res, next) => {
     res.json({ msg: 'butuh jwt token untuk mengambil data item', ok: false });
   } else {
     models.Item.findAll({
+      order: [['name', 'ASC']],
       include:
       [
         {
@@ -902,7 +942,52 @@ methods.updateTargetScore = (req, res, next) => {
                   stretch: req.body.stretch,
                 })
                 .then((updatedTarget) => {
-                  res.json({ ref: 919, msg: 'berhasil update target', updatedTarget, ok: true });
+                  item.getStatuses()
+                  .then((statusItem) => {
+                    const filterStatus = statusItem.filter(each => each.period === req.body.period);
+                    if (filterStatus.length < 1) {
+                      res.json({ ref: 910, msg: 'berhasil memperbarui base dan stretch pada target', msg2: 'belum ada status dan performance pada item dengan period ini', updatedTarget, ok: true });
+                    } else {
+                      // ubah status sama performance di sini kalau base n stretch di update
+                      item.getProgresses()
+                      .then((progress) => {
+                        item.getPerformances()
+                        .then((performance) => {
+                          item.getBobots()
+                          .then((bobot) => {
+                            item.getStatuses()
+                            .then((status) => {
+                              const statusFilter = status.filter(
+                                each => each.period === req.body.period);
+                              const filterProgress = progress.filter(
+                            each => each.period === req.body.period);
+                              const filterPerformance = performance.filter(
+                            each => each.period === req.body.period);
+                              const filterBobot = bobot.filter(
+                                each => each.WorkerId === decoded.id);
+                              const progressVal = Number.parseInt(filterProgress[0].value, 10);
+                              const base = Number.parseInt(filteredTarget[0].base, 10);
+                              const stretch = Number.parseInt(filteredTarget[0].stretch, 10);
+                              const updatedStats = processStatsValue(progressVal, base, stretch);
+                              const perfValue = (
+                                filterBobot[0].value / 100) * (updatedStats.value / 100) * 100;
+                              filterPerformance[0].update({
+                                value: perfValue,
+                              });
+                              statusFilter[0].update({
+                                value: updatedStats.value,
+                                stats: updatedStats.stats,
+                              })
+                              .then((updatedStatus) => {
+                                res.json({ updatedStatus, ok: true, msg: 'sukses memperbarui data status' });
+                              });
+                            });
+                          });
+                        });
+                      });
+                    }
+                  });
+                  // res.json({ ref: 919, msg: 'berhasil update target', updatedTarget, ok: true });
                 });
               }
             });
@@ -1033,50 +1118,16 @@ methods.addNewProgress = (req, res, next) => {
               })
               .then((updatedProgress) => {
                 // update status di sini
-                let value = 0;
-                let stats = '';
-                const processStatsValue = (progress, base, stretch) => {
-                  let result = 0;
-                  if (base > stretch) {
-                    if (progress > base) {
-                      result = (1 - (progress - base) / base) * 100;
-                      stats = 'red';
-                    } else if (progress === base) {
-                      result = (1 + (progress - base) / base) * 100;
-                      stats = 'green';
-                    } else if (progress < base && progress > stretch) {
-                      result = (120 / (100 - ((progress - stretch) * (120 - 100) / (stretch - base)))) * 100;
-                      stats = 'green';
-                    } else if (progress <= stretch) {
-                      result = 120;
-                      stats = 'star';
-                    }
-                    return result;
-                  } else if (base < stretch) {
-                    if (progress === base) {
-                      result = (1 + (progress - base) / base) * 100;
-                      stats = 'green';
-                    } else if (progress > base && progress < stretch) {
-                      result = (105 / (100 + ((progress - stretch) * (105 - 100) / (base - stretch)))) * 100;
-                      stats = 'green';
-                    } else if (progress < base) {
-                      result = (1 + (progress - base) / base) * 100;
-                      stats = 'red';
-                    } else if (progress > base) {
-                      stats = 'star';
-                      result = (105 / (100 + ((progress - stretch) * (105 - 100) / (base - stretch)))) * 100;
-                    }
-                    if (result < 0) result = 105;
-                    return result;
-                  }
-                };
-                if (filteredTargets[0].base === null && filteredTargets[0].stretch === null) {
-                  res.json({ msg: `tidak bisa update progress. pastikan data base dan/atau stretch untuk period ${req.body.period} pada item dengan id ${item.id} diisi dulu`, ok: false });
+                let result = null;
+                if (filteredTargets[0].base === null) {
+                  res.json({ msg: `tidak bisa update progress. pastikan data base untuk period ${req.body.period} pada item dengan id ${item.id} diisi dulu`, ok: false });
+                } else if (filteredTargets[0].stretch === null) {
+                  res.json({ msg: `tidak bisa update progress. pastikan data stretch untuk period ${req.body.period} pada item dengan id ${item.id} diisi dulu`, ok: false });
                 } else {
                   const progress = Number.parseInt(updatedProgress.value, 10);
                   const base = Number.parseInt(filteredTargets[0].base, 10);
                   const stretch = Number.parseInt(filteredTargets[0].stretch, 10);
-                  value = processStatsValue(progress, base, stretch);
+                  result = processStatsValue(progress, base, stretch);
                 }
                 // create dulu kalau belum ada, kalau ada update
                 item.getStatuses()
@@ -1092,8 +1143,8 @@ methods.addNewProgress = (req, res, next) => {
                       if (filteredStatuses.length < 1) {
                         models.Status.create({
                           period: req.body.period,
-                          value,
-                          stats,
+                          value: result.value,
+                          stats: result.stats,
                         })
                         .then((status) => {
                           models.StatusItem.create({
@@ -1101,11 +1152,12 @@ methods.addNewProgress = (req, res, next) => {
                             itemId: item.id,
                           })
                           .then((statusItemRef) => {
+                            // kalau belum ada performance, bikin performance baru
                             if (perf.length < 1) {
-                              value = (filteredBobots[0].value / 100) * (status.value / 100) * 100;
+                              const perfValue = (filteredBobots[0].value / 100) * (status.value / 100) * 100;
                               models.Performance.create({
                                 period: req.body.period,
-                                value,
+                                value: perfValue,
                               })
                               .then((performanceRef) => {
                                 models.PerformanceItem.create({
@@ -1115,23 +1167,36 @@ methods.addNewProgress = (req, res, next) => {
                                 res.json({ ref: 1137, msg: 'berhasil update progress value', filteredProgress, updatedProgress, filteredTargets, statusItemRef, status, performanceRef, ok: true });
                               });
                             } else {
-                              res.json({ ref: 1157, msg: 'update performance di sini' });
+                              const perfValue = (filteredBobots[0].value / 100) * (status.value / 100) * 100;
+                              models.Performance.create({
+                                period: req.body.period,
+                                value: perfValue,
+                              })
+                              .then((performanceRef) => {
+                                models.PerformanceItem.create({
+                                  performanceId: performanceRef.id,
+                                  itemId: item.id,
+                                });
+                                res.json({ ref: 1130, msg: 'berhasil update progress value', filteredProgress, updatedProgress, filteredTargets, statusItemRef, status, performanceRef, ok: true });
+                              });
+                              // res.json({ ref: 1157, msg: 'update performance di sini', perf });
                             }
                           });
                         });
                       } else {
                         filteredStatuses[0].update({
-                          value,
-                          stats,
+                          value: result.value,
+                          stats: result.stats,
                         })
                         .then((updatedStats) => {
-                          value =
+                          const perfValue =
                           (filteredBobots[0].value / 100) * (updatedStats.value / 100) * 100;
-                          perf[0].update({
-                            value,
+                          const filter = perf.filter(each => each.period === req.body.period);
+                          filter[0].update({
+                            value: perfValue,
                           })
                           .then((updatedPerf) => {
-                            res.json({ ref: 1146, msg: 'berhasil update progress value', filteredProgress, updatedProgress, filteredTargets, updatedStats, stats, updatedPerf, ok: true });
+                            res.json({ filter, ref: 1146, msg: 'berhasil update progress value', filteredProgress, updatedProgress, filteredTargets, updatedStats, updatedPerf, ok: true });
                           });
                         });
                       }
@@ -1145,6 +1210,81 @@ methods.addNewProgress = (req, res, next) => {
       } else {
         res.json({ msg: 'pastikan data req.bodyitemId , period dan value di isi semua', ok: false });
       }
+    });
+  }
+};
+
+methods.getItemWithTargets = (req, res, next) => {
+  const itemId = req.params.itemId;
+  if (!req.headers.token) {
+    res.json({ msg: 'butuh jwt token untuk mengupdate nama unit', ok: false });
+  } else {
+    models.Item.findOne({
+      where: {
+        id: itemId,
+      },
+      include: [
+        {
+          model: models.Target,
+        },
+        {
+          model: models.Progress,
+        },
+        {
+          model: models.Status,
+        },
+        {
+          model: models.Performance,
+        },
+      ],
+      order: [
+        [models.Target, 'period', 'ASC'],
+        [models.Progress, 'period', 'ASC'],
+        [models.Status, 'period', 'ASC'],
+        [models.Performance, 'period', 'ASC'],
+      ],
+    })
+    .then((itemWithTargets) => {
+      res.json({ itemWithTargets });
+    });
+  }
+};
+
+methods.getItemsNameAndId = (req, res, next) => {
+  if (!req.headers.token) {
+    res.json({ msg: 'butuh jwt token untuk mengupdate nama unit', ok: false });
+  } else {
+    models.Item.findAll({
+      attributes: [['name', 'text'], ['id', 'value']],
+      order: [['name', 'ASC']],
+    })
+    .then((items) => {
+      res.json({ ok: true, items });
+    });
+  }
+};
+
+methods.getItemDeviationInCertainPeriod = (req, res, next) => {
+  const itemId = req.params.itemId;
+  const period = req.params.period;
+  if (!req.headers.token) {
+    res.json({ msg: 'butuh jwt token untuk mendapatkan deviation item ini', ok: false });
+  } else {
+    models.Status.findOne({
+      include: [{
+        model: models.Item,
+        where: {
+          id: itemId },
+      }],
+      where: {
+        period,
+      },
+    })
+    .then((deviation) => {
+      if (!deviation) {
+        res.json({ ok: false, msg: `tidak ada deviation untuk item dengan id ${itemId} dan period ${period}` });
+      }
+      res.json({ ok: true, deviation });
     });
   }
 };
