@@ -13,7 +13,6 @@ const initialState = {
 };
 
 const getUserDataAfterUserTryingToLogin = (state, payload) => {
-  console.log(state, payload);
   let newState = {};
   if (payload.ok) {
     newState = {
@@ -41,7 +40,6 @@ const getUserDataAfterUserTryingToLogin = (state, payload) => {
       },
     };
   }
-  console.log(newState);
   return newState;
 };
 

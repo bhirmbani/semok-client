@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { Table, Message, Popup, Button, Form, Select, Input } from 'semantic-ui-react';
+import { Table, Message, Popup, Button, Form, Select, Dropdown, Icon } from 'semantic-ui-react';
 import { connect } from 'react-redux';
 
 import {
@@ -18,6 +18,13 @@ import {
 const styles = {
   centerPos: {
     textAlign: 'center',
+  },
+  options: {
+    cursor: 'pointer',
+    fontSize: '1.2em',
+  },
+  filterDropdown: {
+    fontSize: '1.5em',
   },
 };
 
@@ -64,7 +71,6 @@ class ItemList extends Component {
               disabled
               size="mini"
             />
-            <Button size="mini" primary content="Okay" />
           </div>
         );
       }
@@ -99,8 +105,39 @@ class ItemList extends Component {
     this.props.turnOffFilterByItsMakerAndCategory();
   }
 
+  renderPopupForCategory(item) {
+    return (<Popup
+      trigger={<span style={styles.options}>{item.Category ? item.Category.name : 'tidak ada kategori'}</span>}
+      on="click"
+      flowing
+      size="mini"
+      wide
+      position="bottom left"
+      // onOpen={() => {
+      //   // this.props.getWorkerThatHasNoItemYetForDelegateLogic(item.id);
+      //   // const tempState = { ...this.state };
+      //   // this.setState({ delegateItemForm: {
+      //   //   itemId: item.id,
+      //   //   workerId: tempState.delegateItemForm.workerId,
+      //   // },
+      //   // });
+      // }}
+    >
+      {/* <Form style={styles.centerPos} onSubmit={e => this.onSubmitDelegateForm(e)}>
+        {this.renderDropdownOptions()}
+      </Form> */}
+      {/* <Button size="tiny" icon="info" content="Detail" /> */}
+    </Popup>);
+  }
+
+  renderPopUpForDescription() {
+    
+  }
+
   render() {
     const localState = this.state;
+    // let workerDefaultValue = null;
+    // const catDefaultValue = null;
     if (!this.props.itemReducer.items) {
       return (
         <div />
@@ -108,58 +145,41 @@ class ItemList extends Component {
     }
     return (
       <div>
-        <Form onSubmit={e => this.onTurnOffFilterItem(e)}>
-          <Form.Group>
-            <Form.Field
-              control={Select}
-              placeholder="nama pekerja"
-              inline
-              options={this.props.workerReducer.filterItem.workerList}
-              onChange={(e, { value }) => {
-                const tempState = localState.filterItemProperties;
-                const filterItemProperties = {
-                  ...tempState,
-                  worker: value,
-                };
-                localState.filterItemProperties.worker = value;
-                this.props.filterItemByItsMakerAndCategory(localState.filterItemProperties);
-              }}
-            />
-            <Form.Field
-              control={Select}
-              placeholder="nama kategori"
-              inline
-              options={this.props.categoryReducer.filterItem.categoryList}
-              onChange={(e, { value }) => {
-                const realValue = value === 0 ? null : value;
-                const tempState = localState.filterItemProperties;
-                const filterItemProperties = {
-                  ...tempState,
-                  cat: realValue,
-                };
-                localState.filterItemProperties.cat = realValue;
-                this.props.filterItemByItsMakerAndCategory(localState.filterItemProperties);
-              }}
-            />
-            {/*<Form.Field
-              control={Input}
-              placeholder="deskripsi"
-              inline
-              size="tiny"
-              // options={this.props.categoryReducer.filterItem.categoryList}
-              onChange={(e, { value }) => {
-                // const tempState = localState.filterItemProperties;
-                // const filterItemProperties = {
-                //   ...tempState,
-                //   worker: value,
-                // };
-                // localState.filterItemProperties.worker = value;
-                // console.log(this.props.filterItem(localState.filterItemProperties));
-              }}
-            />*/}
-            <Button size="mini" content="Semua Item" />
-          </Form.Group>
-        </Form>
+        <span style={styles.filterDropdown}>
+          Tampilkan item yang dibuat oleh <Dropdown
+            inline
+            simple
+            scrolling
+            noResultsMessage="Tidak ada pekerja"
+            options={this.props.workerReducer.filterItem.workerList}
+            onChange={(e, { value }) => {
+              // const tempState = localState.filterItemProperties;
+              // const filterItemProperties = {
+              //   ...tempState,
+              //   worker: value,
+              // };
+              localState.filterItemProperties.worker = value;
+              this.props.filterItemByItsMakerAndCategory(localState.filterItemProperties);
+            }}
+          />dengan kategori <Dropdown
+            inline
+            simple
+            scrolling
+            noResultsMessage="Tidak ada kategori"
+            options={this.props.categoryReducer.filterItem.categoryList}
+            // defaultValue={catDefaultValue}
+            onChange={(e, { value }) => {
+              const realValue = value === 0 ? null : value;
+              const tempState = localState.filterItemProperties;
+              // const filterItemProperties = {
+              //   ...tempState,
+              //   cat: realValue,
+              // };
+              localState.filterItemProperties.cat = realValue;
+              this.props.filterItemByItsMakerAndCategory(localState.filterItemProperties);
+            }}
+          />
+        </span>
         { /* this is msg to be showed when additem success */ }
         {(this.props.msgReducer.addItem.msg.isSuccessMsgShowed) &&
           <Message
@@ -187,7 +207,12 @@ class ItemList extends Component {
             icon="remove circle"
             onDismiss={() => this.props.closeErrMsgInDelegatingItem()}
           /> }
-        <Table striped padded="very">
+        { /* <p>Menampilkan semua daftar item yang dibuat oleh
+          <span>{localState.filterItemProperties.name}</span>
+        dengan kategori
+          <span>{localState.filterItemProperties.cat}</span>
+        </p> */}
+        <Table celled striped padded="very">
           <Table.Header>
             <Table.Row>
               <Table.HeaderCell>Item KPI</Table.HeaderCell>
@@ -196,18 +221,18 @@ class ItemList extends Component {
               <Table.HeaderCell>Deskripsi</Table.HeaderCell>
             </Table.Row>
           </Table.Header>
-
+          {/* di bawah ini list semua item */}
           {(!this.props.itemReducer.isFilterByItsMakerAndCategoryTriggered) &&
             <Table.Body>
               {this.props.itemReducer.items.map(item => (<Table.Row key={item.id}>
                 <Table.Cell>
                   <Popup
-                    trigger={<a>{item.name}</a>}
+                    trigger={<span style={styles.options}>{item.name}</span>}
                     on="click"
                     flowing
                     size="mini"
                     wide
-                    position="bottom right"
+                    position="bottom left"
                     onOpen={() => {
                       this.props.getWorkerThatHasNoItemYetForDelegateLogic(item.id);
                       const tempState = { ...this.state };
@@ -225,23 +250,27 @@ class ItemList extends Component {
                   </Popup>
                 </Table.Cell>
                 <Table.Cell>{item.createdBy}</Table.Cell>
-                <Table.Cell>{item.Category ? item.Category.name : 'tidak ada kategori'}</Table.Cell>
-                <Table.Cell>{item.description ? item.description : 'tidak ada deskripsi'}</Table.Cell>
+                <Table.Cell>
+                  {this.renderPopupForCategory(item)}
+                </Table.Cell>
+                <Table.Cell>
+                  {item.description ? item.description : 'tidak ada deskripsi'}
+                </Table.Cell>
                 {/* <Table.Cell>{item.Workers.map(worker => worker.name)}</Table.Cell> */}
               </Table.Row>))}
             </Table.Body>}
-          {/* di bawah ini hasil filter */}
+          {/* di bawah ini list hasil filter */}
           {(this.props.itemReducer.isFilterByItsMakerAndCategoryTriggered) &&
             <Table.Body>
               {this.props.filterItemReducer.filteredItems.map(item => (<Table.Row key={item.id}>
                 <Table.Cell>
                   <Popup
-                    trigger={<a>{item.name}</a>}
+                    trigger={<a style={styles.options}>{item.name}</a>}
                     on="click"
                     flowing
                     size="mini"
                     wide
-                    position="bottom right"
+                    position="bottom left"
                     onOpen={() => {
                       this.props.getWorkerThatHasNoItemYetForDelegateLogic(item.id);
                       const tempState = { ...this.state };
@@ -259,7 +288,9 @@ class ItemList extends Component {
                   </Popup>
                 </Table.Cell>
                 <Table.Cell>{item.createdBy}</Table.Cell>
-                <Table.Cell>{item.Category ? item.Category.name : 'tidak ada kategori'}</Table.Cell>
+                <Table.Cell>
+                  {this.renderPopupForCategory(item)}
+                </Table.Cell>
                 <Table.Cell>{item.description ? item.description : 'tidak ada deskripsi'}</Table.Cell>
                 {/* <Table.Cell>{item.Workers.map(worker => worker.name)}</Table.Cell> */}
               </Table.Row>))}

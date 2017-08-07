@@ -4,12 +4,22 @@ import * as actionType from '../actions/constants';
 const initialState = {
   items: null,
   isFilterByItsMakerAndCategoryTriggered: false,
+  itemWithIdAndName: null,
+  itemWithTargets: null,
 };
 
 const getItems = (state, payload) => {
   const newState = {
     ...state,
     items: payload,
+  };
+  return newState;
+};
+
+const getItemWithIdAndName = (state, payload) => {
+  const newState = {
+    ...state,
+    itemWithIdAndName: payload,
   };
   return newState;
 };
@@ -22,12 +32,13 @@ const addItemSuccess = (state, payload) => {
     Category: payload.createdItem.Category,
     Workers: payload.createdItem.Workers,
     msg: payload.msg,
+    description: payload.item.description,
   };
   const newState = {
     ...state,
     items: [
-      ...state.items,
       newItem,
+      ...state.items,
     ] };
   return newState;
 };
@@ -48,6 +59,18 @@ const turnOffFilterByItsMakerAndCategory = (state) => {
   return newState;
 };
 
+const getItemWithTargets = (state, payload) => {
+  const newState = {
+    ...state,
+    itemWithTargets: payload,
+  };
+  return newState;
+};
+
+// const getItemDeviationInCertainPeriod = (state, payload) => {
+
+// }
+
 const itemReducer = (state = initialState, { type, payload }) => {
   switch (type) {
     case actionType.GET_ITEMS_RESULT:
@@ -58,6 +81,10 @@ const itemReducer = (state = initialState, { type, payload }) => {
       return filterItemByItsMakerAndCategory(state);
     case actionType.TURN_OFF_FILTER_BY_ITS_MAKER_AND_CATEGORY:
       return turnOffFilterByItsMakerAndCategory(state);
+    case actionType.GET_ITEM_WITH_ID_AND_NAME:
+      return getItemWithIdAndName(state, payload);
+    case actionType.GET_ITEM_WITH_TARGETS:
+      return getItemWithTargets(state, payload);
     default:
       return state;
   }

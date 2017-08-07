@@ -19,6 +19,20 @@ export const getItems = () => (dispatch) => {
     });
 };
 
+export const getItemWithIdAndNameResult = items => ({
+  type: actionType.GET_ITEM_WITH_ID_AND_NAME,
+  payload: items,
+});
+
+export const getItemWithIdAndName = () => (dispatch) => {
+  axios.get('http://localhost:3000/api/item/name-and-id', {
+    headers: { token: localStorage.getItem('token') },
+  })
+    .then((res) => {
+      dispatch(getItemWithIdAndNameResult(res.data.items));
+    });
+};
+
 export const addItemSuccess = itemData => ({
   type: actionType.ADD_ITEM_SUCCESS,
   payload: itemData,
@@ -32,6 +46,7 @@ export const addItem = itemData => (dispatch) => {
       if (res.data.ok) {
         dispatch(msgFromAddItemSuccess(res.data.msg));
         dispatch(addItemSuccess(res.data));
+        dispatch(getItemWithIdAndName());
       } else {
         // dispatch(addItemResult(res.data));
         dispatch(msgFromAddItemError(res.data.msg));
@@ -57,3 +72,29 @@ export const delegateItem = delegateData => (dispatch) => {
       }
     });
 };
+
+export const getItemWithTargets = itemId => (dispatch) => {
+  axios.get(`http://localhost:3000/api/item/${itemId}/target/`, {
+    headers: { token: localStorage.getItem('token') },
+  })
+    .then((res) => {
+      dispatch({
+        type: actionType.GET_ITEM_WITH_TARGETS,
+        payload: res.data.itemWithTargets,
+      });
+    });
+};
+
+// export const resultOfGetItemDeviation = deviation => ({
+//   type: actionType.GET_ITEM_DEVIATION_IN_CERTAIN_PERIOD,
+//   payload: deviation,
+// });
+
+// export const getItemDeviationInCertainPeriod = (itemId, period) => (dispatch) => {
+//   axios.get(`http://localhost:3000/api/item/deviation/${itemId}/${period}`, {
+//     headers: { token: localStorage.getItem('token') },
+//   })
+//     .then((res) => {
+//       dispatch(resultOfGetItemDeviation(res.data.deviation));
+//     });
+// };
