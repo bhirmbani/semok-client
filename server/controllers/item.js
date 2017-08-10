@@ -171,7 +171,7 @@ methods.create = (req, res, next) => {
                           });
                         });
                       }
-                      res.json({ createdItem, unitRef, infoRef, bobotRef, workerItemRef, item, ok: true, msg: { context: 'Terimakasih', content: `Item baru dengan nama ${createdItem.name} berhasil dibuat` } });
+                      res.json({ createdItem, infoRef, bobotRef, item, ok: true, msg: { context: 'Terimakasih', content: `Item baru dengan nama ${createdItem.name} berhasil dibuat` } });
                     });
                   });
                 });
@@ -192,7 +192,13 @@ methods.gets = (req, res, next) => {
     res.json({ msg: 'butuh jwt token untuk mengambil data item', ok: false });
   } else {
     models.Item.findAll({
-      order: [['name', 'ASC']],
+      order: [
+        ['name', 'ASC'],
+        [models.Target, 'period', 'ASC'],
+        [models.Progress, 'period', 'ASC'],
+        [models.Status, 'period', 'ASC'],
+        [models.Performance, 'period', 'ASC'],
+      ],
       include:
       [
         {
@@ -843,6 +849,18 @@ methods.getItemById = (req, res, next) => {
         },
         {
           model: models.Info,
+        },
+        {
+          model: models.Target,
+        },
+        {
+          model: models.Progress,
+        },
+        {
+          model: models.Performance,
+        },
+        {
+          model: models.Category,
         },
       ],
     })

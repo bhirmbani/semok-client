@@ -10,7 +10,7 @@ router.post('/create', Worker.create);
 router.post('/login', passport.authenticate('local', { session: false }), (req, res) => {
   const user = req.user;
   res.send(user);
-  console.log('login route', user);
+  // console.log('login route', user);
 });
 
 router.get('/no-item/:itemId', helper.isLogin, Worker.getWorkerThatHasNoItemYet);

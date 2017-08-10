@@ -9,7 +9,7 @@ methods.auth = (data) => {
 
 methods.isLogin = (req, res, next) => {
   jwt.verify(req.headers.token, process.env.SECRET_KEYS, (err, decoded) => {
-    console.log(decoded);
+    // console.log(decoded);
     if (decoded) {
       next();
     } else {

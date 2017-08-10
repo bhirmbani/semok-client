@@ -56,7 +56,7 @@ methods.login = (email, password, next) => {
     if (!user) {
       next(null, { ok: false, msg: { context: 'Gagal Login', content: 'Email tidak ditemukan' } });
     } else if (bcrypt.compareSync(password, user.password)) {
-      console.log(user);
+      // console.log(user);
       const userData = Object.assign({ name: user.name, role: user.role, id: user.id, ok: true });
       next(null, { msg: { context: 'Berhasil Login', content: 'Selamat datang' }, token: helper.auth(userData), ok: true, user: userData });
     } else {
