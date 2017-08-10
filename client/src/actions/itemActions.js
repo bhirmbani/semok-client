@@ -33,10 +33,26 @@ export const getItemWithIdAndName = () => (dispatch) => {
     });
 };
 
-export const addItemSuccess = itemData => ({
-  type: actionType.ADD_ITEM_SUCCESS,
-  payload: itemData,
+const resultFromGetItemProperties = properties => ({
+  type: actionType.RESULT_FROM_GET_ITEM_PROPERTIES,
+  payload: properties,
 });
+
+const getItemPropertiesForAddItemLogic = itemId => (dispatch) => {
+  axios.get(`http://localhost:3000/api/item/${itemId}`, {
+    headers: { token: localStorage.getItem('token') },
+  })
+    .then((res) => {
+      if (res.data.ok) {
+        dispatch(resultFromGetItemProperties(res.data.items));
+      }
+    });
+};
+
+// export const addItemSuccess = itemData => ({
+//   type: actionType.ADD_ITEM_SUCCESS,
+//   payload: itemData,
+// });
 
 export const addItem = itemData => (dispatch) => {
   axios.post('http://localhost:3000/api/item', itemData, {
@@ -45,10 +61,10 @@ export const addItem = itemData => (dispatch) => {
     .then((res) => {
       if (res.data.ok) {
         dispatch(msgFromAddItemSuccess(res.data.msg));
-        dispatch(addItemSuccess(res.data));
+        // dispatch(addItemSuccess(res.data));
+        dispatch(getItemPropertiesForAddItemLogic(res.data.createdItem.id));
         dispatch(getItemWithIdAndName());
       } else {
-        // dispatch(addItemResult(res.data));
         dispatch(msgFromAddItemError(res.data.msg));
       }
     });
@@ -82,6 +98,20 @@ export const getItemWithTargets = itemId => (dispatch) => {
         type: actionType.GET_ITEM_WITH_TARGETS,
         payload: res.data.itemWithTargets,
       });
+    });
+};
+
+const addItemBaseAndStretchInTarget = targetFormProperties => (dispatch) => {
+  axios.post('http://localhost:3000/api/item/target', {
+    headers: { token: localStorage.getItem('token') },
+  })
+    .then((res) => {
+      if (res.data.ok && res.data.updatedTarget) {
+        dispatch({
+          type: actionType.ADD_ITEM_BASE_AND_STRETCH_IN_TARGET,
+          payload: res,
+        });
+      }
     });
 };
 
