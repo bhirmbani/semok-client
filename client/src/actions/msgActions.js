@@ -66,14 +66,20 @@ export const openModal = () => (dispatch) => {
   });
 };
 
-export const closeSuccessAddItemMsgInBelowNavbar = () => (dispatch) => {
+export const closeAddItemSuccessMsg = () => (dispatch) => {
   dispatch({
-    type: actionType.CLOSE_SUCCESS_ADD_ITEM_MSG_IN_BELOW_NAVBAR,
+    type: actionType.CLOSE_ADD_ITEM_SUCCESS_MSG,
   });
 };
 
 export const removeSidebarWhenUserClickLogout = () => (dispatch) => {
   dispatch({
     type: actionType.REMOVE_SIDEBAR_WHEN_USER_CLICK_LOGOUT,
+  });
+};
+
+export const removeMsgFromAddTarget = () => (dispatch) => {
+  dispatch({
+    type: actionType.REMOVE_MSG_FROM_ADD_TARGET,
   });
 };

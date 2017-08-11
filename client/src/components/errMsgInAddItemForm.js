@@ -12,6 +12,8 @@ class ErrMsgInAddItemForm extends Component {
       /* below is message that showed in addItem form only when addItem is not success */
       msg = (
         <Message
+          attached
+          compact
           header={this.props.msgReducer.addItem.msg.context}
           content={this.props.msgReducer.addItem.msg.content}
           negative

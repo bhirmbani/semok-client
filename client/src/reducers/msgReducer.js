@@ -25,6 +25,15 @@ const initialState = {
       isErrMsgShowed: false,
     },
   },
+  addTarget: {
+    msg: {
+      context: null,
+      content: null,
+      ok: null,
+      isSuccessMsgShowed: false,
+      isErrMsgShowed: false,
+    },
+  },
 };
 
 const openModal = (state) => {
@@ -109,7 +118,7 @@ const showErrMsgIfAddItemError = (state, payload) => {
   return newState;
 };
 
-const closeSuccessAddItemMsgInBelowNavbar = (state) => {
+const closeAddItemSuccessMsg = (state) => {
   const newState = {
     ...state,
     addItem: {
@@ -159,6 +168,54 @@ const msgFromAddItemSuccess = (state, payload) => {
         isSuccessMsgShowed: true,
         isModalOpened: false,
         ok: true,
+      },
+    },
+  };
+  return newState;
+};
+
+const msgFromAddTargetSuccess = (state, payload) => {
+  const newState = {
+    ...state,
+    addTarget: {
+      msg: {
+        context: 'Terimakasih',
+        content: payload.msg,
+        ok: true,
+        isSuccessMsgShowed: true,
+        isErrMsgShowed: false,
+      },
+    },
+  };
+  return newState;
+};
+
+const msgFromAddTargetErr = (state, payload) => {
+  const newState = {
+    ...state,
+    addTarget: {
+      msg: {
+        context: 'Gagal memperbarui nilai target',
+        content: payload,
+        ok: false,
+        isSuccessMsgShowed: false,
+        isErrMsgShowed: true,
+      },
+    },
+  };
+  return newState;
+};
+
+const removeMsgFromAddTarget = (state) => {
+  const newState = {
+    ...state,
+    addTarget: {
+      msg: {
+        context: 'null',
+        content: null,
+        ok: null,
+        isSuccessMsgShowed: false,
+        isErrMsgShowed: false,
       },
     },
   };
@@ -287,8 +344,8 @@ const msgReducer = (state = initialState, { type, payload }) => {
     case actionType.OPEN_MODAL:
       return openModal(state);
 
-    case actionType.CLOSE_SUCCESS_ADD_ITEM_MSG_IN_BELOW_NAVBAR:
-      return closeSuccessAddItemMsgInBelowNavbar(state);
+    case actionType.CLOSE_ADD_ITEM_SUCCESS_MSG:
+      return closeAddItemSuccessMsg(state);
 
     case actionType.CLOSE_ERR_MSG_IN_ADD_ITEM_FORM:
       return closeErrMsgInAddItemForm(state);
@@ -304,6 +361,15 @@ const msgReducer = (state = initialState, { type, payload }) => {
 
     case actionType.CLOSE_ERR_MSG_IN_DELEGATING_ITEM:
       return closeErrMsgInDelegatingItem(state);
+
+    case actionType.MSG_FROM_ADD_TARGET_SUCCESS:
+      return msgFromAddTargetSuccess(state, payload);
+
+    case actionType.MSG_FROM_ADD_TARGET_ERR:
+      return msgFromAddTargetErr(state, payload);
+
+    case actionType.REMOVE_MSG_FROM_ADD_TARGET:
+      return removeMsgFromAddTarget(state);
 
     default:
       return state;

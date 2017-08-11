@@ -42,14 +42,46 @@ const processStatsValue = (progress, base, stretch) => {
   }
 };
 
+const processMonthName = (period) => {
+  switch (period) {
+    case '1':
+      return 'Januari';
+    case '2':
+      return 'Februari';
+    case '3':
+      return 'Maret';
+    case '4':
+      return 'April';
+    case '5':
+      return 'Mei';
+    case '6':
+      return 'Juni';
+    case '7':
+      return 'Juli';
+    case '8':
+      return 'Agustus';
+    case '9':
+      return 'September';
+    case '10':
+      return 'Oktober';
+    case '11':
+      return 'November';
+    case '12':
+      return 'Desember';
+    default:
+      return '';
+  }
+};
+
 methods.create = (req, res, next) => {
   if (!req.headers.token) {
     res.json({ msg: 'butuh jwt token untuk membuat item baru', ok: false });
   } else {
     const decoded = helper.decode(req.headers.token);
-    const name = req.body.name;
-    const description = req.body.description;
-    const value = req.body.value;
+    const name = req.body.name.trim();
+    const formattedName = name.toLowerCase();
+    const description = req.body.description.trim();
+    const value = req.body.value.trim();
     const createdBy = decoded.name;
     const freq = req.body.freq;
     const number = new RegExp('^(?=.*[0-9])');
@@ -63,124 +95,134 @@ methods.create = (req, res, next) => {
       models.Item.findOne({
         where: { name },
       })
-      .then((foundItem) => {
+      .then((foundItem) =>  {
         if (!foundItem) {
-          models.Item.create({
-            name,
-            description,
-            createdBy,
-            freq,
+          models.Item.findAll({
+            attributes: [['name', 'name']],
           })
-      .then((item) => {
-        if (!item) {
-          res.json({ msg: 'gagal membuat item baru', ok: false });
-        } else {
-          models.Bobot.create({
-            value,
-            ItemId: item.id,
-            WorkerId: decoded.id,
-          })
-            .then((bobotRef) => {
-              models.WorkerItem.create({
-                itemId: item.id,
-                workerId: decoded.id,
+          .then((allItem) => {
+            const sameName = allItem.filter(each => each.name.toLowerCase() === formattedName);
+            if (sameName.length < 1) {
+              models.Item.create({
+                name,
+                description,
+                createdBy,
+                freq,
               })
-              .then((workerItemRef) => {
-                models.Info.create({
-                  ItemId: item.id,
-                  WorkerId: decoded.id,
-                })
-                .then((infoRef) => {
-                  models.Unit.create({
+              .then((item) => {
+                if (!item) {
+                  res.json({ msg: 'gagal membuat item baru', ok: false });
+                } else {
+                  models.Bobot.create({
+                    value,
                     ItemId: item.id,
+                    WorkerId: decoded.id,
                   })
-                  .then((unitRef) => {
-                    models.Item.findOne({
-                      where: { id: item.id },
-                      include: [{
-                        model: models.Worker,
-                      },
-                      {
-                        model: models.Category,
-                        include: [{
-                          model: models.TopCategory,
-                        }],
-                      },
-                      ],
+                  .then((bobotRef) => {
+                    models.WorkerItem.create({
+                      itemId: item.id,
+                      workerId: decoded.id,
                     })
-                    .then((createdItem) => {
-                      if (item.freq === '3') {
-                        for (let i = 3; i <= 12; i += 3) {
-                          models.Target.create({
-                            period: i.toString(),
-                          })
-                          .then((target) => {
-                            models.TargetItem.create({
-                              itemId: item.id,
-                              targetId: target.id,
-                            });
-                            models.Progress.create({
-                              period: i.toString(),
-                            })
-                            .then((progress) => {
-                              models.ProgressItem.create({
-                                progressId: progress.id,
-                                itemId: item.id,
-                              });
-                            });
-                          });
-                        }
-                      } else if (item.freq === '1') {
-                        for (let i = 1; i <= 12; i += 1) {
-                          models.Target.create({
-                            period: i.toString(),
-                          })
-                          .then((target) => {
-                            models.TargetItem.create({
-                              itemId: item.id,
-                              targetId: target.id,
-                            });
-                            models.Progress.create({
-                              period: i.toString(),
-                            })
-                            .then((progress) => {
-                              models.ProgressItem.create({
-                                progressId: progress.id,
-                                itemId: item.id,
-                              });
-                            });
-                          });
-                        }
-                      } else {
-                        models.Target.create({
-                          period: '12',
+                    .then((workerItemRef) => {
+                      models.Info.create({
+                        ItemId: item.id,
+                        WorkerId: decoded.id,
+                      })
+                      .then((infoRef) => {
+                        models.Unit.create({
+                          ItemId: item.id,
                         })
-                        .then((target) => {
-                          models.TargetItem.create({
-                            itemId: item.id,
-                            targetId: target.id,
-                          });
-                          models.Progress.create({
-                            period: '12',
+                        .then((unitRef) => {
+                          models.Item.findOne({
+                            where: { id: item.id },
+                            include: [{
+                              model: models.Worker,
+                            },
+                            {
+                              model: models.Category,
+                              include: [{
+                                model: models.TopCategory,
+                              }],
+                            },
+                            ],
                           })
-                          .then((progress) => {
-                            models.ProgressItem.create({
-                              progressId: progress.id,
-                              itemId: item.id,
-                            });
+                          .then((createdItem) => {
+                            if (item.freq === '3') {
+                              for (let i = 3; i <= 12; i += 3) {
+                                models.Target.create({
+                                  period: i.toString(),
+                                })
+                                .then((target) => {
+                                  models.TargetItem.create({
+                                    itemId: item.id,
+                                    targetId: target.id,
+                                  });
+                                  models.Progress.create({
+                                    period: i.toString(),
+                                  })
+                                  .then((progress) => {
+                                    models.ProgressItem.create({
+                                      progressId: progress.id,
+                                      itemId: item.id,
+                                    });
+                                  });
+                                });
+                              }
+                            } else if (item.freq === '1') {
+                              for (let i = 1; i <= 12; i += 1) {
+                                models.Target.create({
+                                  period: i.toString(),
+                                })
+                                .then((target) => {
+                                  models.TargetItem.create({
+                                    itemId: item.id,
+                                    targetId: target.id,
+                                  });
+                                  models.Progress.create({
+                                    period: i.toString(),
+                                  })
+                                  .then((progress) => {
+                                    models.ProgressItem.create({
+                                      progressId: progress.id,
+                                      itemId: item.id,
+                                    });
+                                  });
+                                });
+                              }
+                            } else {
+                              models.Target.create({
+                                period: '12',
+                              })
+                              .then((target) => {
+                                models.TargetItem.create({
+                                  itemId: item.id,
+                                  targetId: target.id,
+                                });
+                                models.Progress.create({
+                                  period: '12',
+                                })
+                                .then((progress) => {
+                                  models.ProgressItem.create({
+                                    progressId: progress.id,
+                                    itemId: item.id,
+                                  });
+                                });
+                              });
+                            }
+                            res.json({ createdItem, infoRef, bobotRef, item, ok: true, msg: { context: 'Terimakasih', content: `Item baru dengan nama ${createdItem.name} berhasil dibuat` } });
                           });
                         });
-                      }
-                      res.json({ createdItem, infoRef, bobotRef, item, ok: true, msg: { context: 'Terimakasih', content: `Item baru dengan nama ${createdItem.name} berhasil dibuat` } });
+                      });
                     });
                   });
-                });
+                }
               });
-            });
-        }
-      });
+            } else {
+              res.json({ ref: 222, msg: { context: 'Apa Anda tidak Salah Input?', content: `Soalnya item dengan nama ${sameName[0].name} sudah ada.` }, ok: false });
+            }
+          });
         } else {
-          res.json({ msg: { context: 'Gagal buat item', content: `item dengan nama ${name} sudah ada.` }, ok: false });
+          res.json({ ref: 226, msg: { context: 'Gagal buat item', content: `item dengan nama ${name} sudah ada.` }, ok: false });
         }
       });
     }
@@ -835,6 +877,12 @@ methods.getItemById = (req, res, next) => {
     res.json({ msg: 'butuh jwt token untuk mengambil data item', ok: false });
   } else {
     models.Item.findAll({
+      order: [
+        [models.Target, 'period', 'ASC'],
+        [models.Progress, 'period', 'ASC'],
+        [models.Status, 'period', 'ASC'],
+        [models.Performance, 'period', 'ASC'],
+      ],
       where: { id: req.params.itemId },
       include:
       [
@@ -964,7 +1012,7 @@ methods.updateTargetScore = (req, res, next) => {
                   .then((statusItem) => {
                     const filterStatus = statusItem.filter(each => each.period === req.body.period);
                     if (filterStatus.length < 1) {
-                      res.json({ ref: 910, msg: 'berhasil memperbarui base dan stretch pada target', msg2: 'belum ada status dan performance pada item dengan period ini', updatedTarget, ok: true });
+                      res.json({ ref: 910, msg: `item ${item.name} berhasil diperbarui targetnya untuk bulan ${processMonthName(updatedTarget.period)}.`, msg2: 'belum ada status dan performance pada item dengan period ini', updatedTarget, item, ok: true });
                     } else {
                       // ubah status sama performance di sini kalau base n stretch di update
                       item.getProgresses()
@@ -991,13 +1039,15 @@ methods.updateTargetScore = (req, res, next) => {
                                 filterBobot[0].value / 100) * (updatedStats.value / 100) * 100;
                               filterPerformance[0].update({
                                 value: perfValue,
-                              });
-                              statusFilter[0].update({
-                                value: updatedStats.value,
-                                stats: updatedStats.stats,
                               })
-                              .then((updatedStatus) => {
-                                res.json({ updatedStatus, ok: true, msg: 'sukses memperbarui data status' });
+                              .then((performanceResult) => {
+                                statusFilter[0].update({
+                                  value: updatedStats.value,
+                                  stats: updatedStats.stats,
+                                })
+                              .then((statusResult) => {
+                                res.json({ ref: 1048, updatedTarget, statusResult, performanceResult, ok: true, msg: 'sukses memperbarui data status' });
+                              });
                               });
                             });
                           });
@@ -1134,7 +1184,7 @@ methods.addNewProgress = (req, res, next) => {
               filteredProgress[0].update({
                 value: req.body.value,
               })
-              .then((updatedProgress) => {
+              .then((progressResult) => {
                 // update status di sini
                 let result = null;
                 if (filteredTargets[0].base === null) {
@@ -1142,7 +1192,7 @@ methods.addNewProgress = (req, res, next) => {
                 } else if (filteredTargets[0].stretch === null) {
                   res.json({ msg: `tidak bisa update progress. pastikan data stretch untuk period ${req.body.period} pada item dengan id ${item.id} diisi dulu`, ok: false });
                 } else {
-                  const progress = Number.parseInt(updatedProgress.value, 10);
+                  const progress = Number.parseInt(progressResult.value, 10);
                   const base = Number.parseInt(filteredTargets[0].base, 10);
                   const stretch = Number.parseInt(filteredTargets[0].stretch, 10);
                   result = processStatsValue(progress, base, stretch);
@@ -1164,38 +1214,38 @@ methods.addNewProgress = (req, res, next) => {
                           value: result.value,
                           stats: result.stats,
                         })
-                        .then((status) => {
+                        .then((statusResult) => {
                           models.StatusItem.create({
-                            statusId: status.id,
+                            statusId: statusResult.id,
                             itemId: item.id,
                           })
                           .then((statusItemRef) => {
                             // kalau belum ada performance, bikin performance baru
                             if (perf.length < 1) {
-                              const perfValue = (filteredBobots[0].value / 100) * (status.value / 100) * 100;
+                              const perfValue = (filteredBobots[0].value / 100) * (statusResult.value / 100) * 100;
                               models.Performance.create({
                                 period: req.body.period,
                                 value: perfValue,
                               })
-                              .then((performanceRef) => {
+                              .then((performanceResult) => {
                                 models.PerformanceItem.create({
-                                  performanceId: performanceRef.id,
+                                  performanceId: performanceResult.id,
                                   itemId: item.id,
                                 });
-                                res.json({ ref: 1137, msg: 'berhasil update progress value', filteredProgress, updatedProgress, filteredTargets, statusItemRef, status, performanceRef, ok: true });
+                                res.json({ ref: 1137, msg: 'berhasil update progress value', filteredProgress, progressResult, filteredTargets, statusItemRef, statusResult, performanceResult, ok: true });
                               });
                             } else {
-                              const perfValue = (filteredBobots[0].value / 100) * (status.value / 100) * 100;
+                              const perfValue = (filteredBobots[0].value / 100) * (statusResult.value / 100) * 100;
                               models.Performance.create({
                                 period: req.body.period,
                                 value: perfValue,
                               })
-                              .then((performanceRef) => {
+                              .then((performanceResult) => {
                                 models.PerformanceItem.create({
-                                  performanceId: performanceRef.id,
+                                  performanceId: performanceResult.id,
                                   itemId: item.id,
                                 });
-                                res.json({ ref: 1130, msg: 'berhasil update progress value', filteredProgress, updatedProgress, filteredTargets, statusItemRef, status, performanceRef, ok: true });
+                                res.json({ ref: 1130, msg: 'berhasil update progress value', filteredProgress, progressResult, filteredTargets, statusItemRef, statusResult, performanceResult, ok: true });
                               });
                               // res.json({ ref: 1157, msg: 'update performance di sini', perf });
                             }
@@ -1206,15 +1256,15 @@ methods.addNewProgress = (req, res, next) => {
                           value: result.value,
                           stats: result.stats,
                         })
-                        .then((updatedStats) => {
+                        .then((statusResult) => {
                           const perfValue =
-                          (filteredBobots[0].value / 100) * (updatedStats.value / 100) * 100;
+                          (filteredBobots[0].value / 100) * (statusResult.value / 100) * 100;
                           const filter = perf.filter(each => each.period === req.body.period);
                           filter[0].update({
                             value: perfValue,
                           })
-                          .then((updatedPerf) => {
-                            res.json({ filter, ref: 1146, msg: 'berhasil update progress value', filteredProgress, updatedProgress, filteredTargets, updatedStats, updatedPerf, ok: true });
+                          .then((performanceResult) => {
+                            res.json({ filter, ref: 1146, msg: 'berhasil update progress value', filteredProgress, progressResult, filteredTargets, statusResult, performanceResult, ok: true });
                           });
                         });
                       }

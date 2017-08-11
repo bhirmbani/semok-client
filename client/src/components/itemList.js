@@ -2,10 +2,12 @@ import React, { Component } from 'react';
 import { Table, Message, Popup, Button, Form, Select, Dropdown, Icon, Header, Input } from 'semantic-ui-react';
 import { connect } from 'react-redux';
 import numeral from 'numeral';
+import { toast } from 'react-toastify';
+import voca from 'voca';
 
 import {
   getItems,
-  closeSuccessAddItemMsgInBelowNavbar,
+  closeAddItemSuccessMsg,
   getWorkerThatHasNoItemYetForDelegateLogic,
   delegateItem,
   closeSuccessMsgInDelegatingItem,
@@ -14,11 +16,25 @@ import {
   getCategoriesForFilteringItem,
   filterItemByItsMakerAndCategory,
   turnOffFilterByItsMakerAndCategory,
+  addItemBaseAndStretchInTarget,
+  removeMsgFromAddTarget,
+  addValueInProgressItem,
 } from '../actions';
+
+const ignoreTitleCase = [
+  'di',
+  'ke',
+  'dari',
+  'yang',
+  'pada',
+];
 
 const styles = {
   centerPos: {
     textAlign: 'center',
+  },
+  paddingCell: {
+    padding: 'inherit',
   },
   itemName: {
     cursor: 'pointer',
@@ -48,7 +64,7 @@ const styles = {
   targetTable: {
     display: 'inline-flex',
   },
-  targetProgressInlineParent: {
+  inlineParent: {
     fontSize: '0.7em',
     // backgroundColor: 'blue',
     display: 'inline',
@@ -90,28 +106,28 @@ const processDot = (status) => {
         fontSize: '0.70em',
         padding: '0.6em',
         color: '#FF2C2C', // FF4545
-        cursor: 'pointer',
+        // cursor: 'pointer',
       };
     } else if (stats === 'green') {
       style = {
         fontSize: '0.70em',
         padding: '0.6em',
         color: '#58E481',
-        cursor: 'pointer',
+        // cursor: 'pointer',
       };
     } else if (stats === 'star') {
       style = {
         fontSize: '0.70em',
         padding: '0.6em',
         color: '#FFD480', // FBE6A2 F6C90E FAF15D
-        cursor: 'pointer',
+        // cursor: 'pointer',
       };
     } else {
       style = {
         fontSize: '0.70em',
         padding: '0.6em',
         color: 'black',
-        cursor: 'pointer',
+        // cursor: 'pointer',
       };
     }
     return style;
@@ -185,6 +201,17 @@ class ItemList extends Component {
         cat: null,
         desc: null,
       },
+      addTargetForm: {
+        itemId: null,
+        base: null,
+        stretch: null,
+        period: null,
+      },
+      addProgressForm: {
+        itemId: null,
+        period: null,
+        value: null,
+      },
     };
   }
 
@@ -194,6 +221,17 @@ class ItemList extends Component {
       this.props.getWorkersWithoutAdminForFilterInTableItem();
       this.props.getCategoriesForFilteringItem();
     }
+  }
+
+  onSubmitProgressForm(e, positionData) {
+    e.preventDefault();
+    this.props.addValueInProgressItem(this.state.addProgressForm, positionData);
+  }
+
+  onSubmitTargetForm(e, itemIdx, targetIdx, period) {
+    e.preventDefault();
+    this.props.addItemBaseAndStretchInTarget(this.state.addTargetForm, itemIdx, targetIdx, period);
+    this.props.removeMsgFromAddTarget();
   }
 
   onSubmitDelegateForm(e) {
@@ -274,8 +312,29 @@ class ItemList extends Component {
 
   }
 
+  showAddItemSuccessMsg() {
+    if (this.props.msgReducer.addItem.msg.isSuccessMsgShowed) {
+      toast.success(this.props.msgReducer.addItem.msg.content);
+    }
+  }
+
+  showAddTargetMsg() {
+    if (this.props.msgReducer.addTarget.msg.isSuccessMsgShowed) {
+      toast.success(this.props.msgReducer.addTarget.msg.content);
+    } else if (this.props.msgReducer.addTarget.msg.isErrMsgShowed) {
+      toast.error(this.props.msgReducer.addTarget.msg.content);
+    }
+  }
+
+  sortPerformance(array) {
+    array.sort((a, b) => {
+      return a.period - b.period;
+    });
+  }
+
   render() {
     const localState = this.state;
+    // console.log(this.state.addProgressForm)
     // let workerDefaultValue = null;
     // const catDefaultValue = null;
     if (!this.props.itemReducer.items) {
@@ -320,15 +379,13 @@ class ItemList extends Component {
             }}
           />
         </span>
+        { /* this is msg to be showed when add target success or error */ 
+          this.showAddTargetMsg()
+        }
         { /* this is msg to be showed when additem success */ }
-        {(this.props.msgReducer.addItem.msg.isSuccessMsgShowed) &&
-          <Message
-            header={this.props.msgReducer.addItem.msg.context}
-            content={this.props.msgReducer.addItem.msg.content}
-            positive
-            icon="info"
-            onDismiss={() => this.props.closeSuccessAddItemMsgInBelowNavbar()}
-          /> }
+        {
+          this.showAddItemSuccessMsg()
+        }
         { /* this is msg when delegate item success */}
         {(this.props.msgReducer.delegateItem.msg.isSuccessMsgShowed) &&
           <Message
@@ -356,19 +413,18 @@ class ItemList extends Component {
           <Table.Header>
             <Table.Row>
               <Table.HeaderCell>Item KPI</Table.HeaderCell>
-              <Table.HeaderCell>Dibuat Oleh</Table.HeaderCell>
               <Table.HeaderCell>Kategori</Table.HeaderCell>
               <Table.HeaderCell>Deskripsi</Table.HeaderCell>
               <Table.HeaderCell>Target</Table.HeaderCell>
               <Table.HeaderCell>Progress <Icon name="line chart" style={styles.titleIcon} /></Table.HeaderCell>
-              <Table.HeaderCell>Deviation</Table.HeaderCell>
+              <Table.HeaderCell style={{ width: '11em' }}>Deviation</Table.HeaderCell>
               <Table.HeaderCell>Performance</Table.HeaderCell>
             </Table.Row>
           </Table.Header>
           {/* di bawah ini list semua item */}
           {(!this.props.itemReducer.isFilterByItsMakerAndCategoryTriggered) &&
             <Table.Body>
-              {this.props.itemReducer.items.map(item => (<Table.Row key={item.id}>
+              {this.props.itemReducer.items.map((item, itemIdx) => (<Table.Row key={item.id}>
                 <Table.Cell>
                   <Popup
                     trigger={<span style={styles.itemName}>{item.name}</span>}
@@ -393,7 +449,6 @@ class ItemList extends Component {
                     {/* <Button size="tiny" icon="info" content="Detail" /> */}
                   </Popup>
                 </Table.Cell>
-                <Table.Cell>{item.createdBy}</Table.Cell>
                 <Table.Cell>
                   {this.renderPopupForCategory(item)}
                 </Table.Cell>
@@ -401,10 +456,10 @@ class ItemList extends Component {
                   {item.description ? item.description : 'tidak ada deskripsi'}
                 </Table.Cell>
                 <Table.Cell>
-                  {item.Targets.map(target => (
+                  {item.Targets.map((target, targetIdx) => (
                     <div key={target.id}>
                       <Popup
-                        position="right center"
+                        position="top center"
                         trigger={
                           <div style={styles.targetAndProgress}>
                             {<span style={styles.borderBottom}>{processMonthName(target.period)}</span>}
@@ -412,14 +467,32 @@ class ItemList extends Component {
                         on="click"
                         size="mini"
                         wide
+                        onOpen={() => this.setState({
+                          addTargetForm: {
+                            itemId: null,
+                            base: target.base,
+                            stretch: target.stretch,
+                            period: target.period,
+                          },
+                        })}
+                        onClose={() => this.props.removeMsgFromAddTarget()}
                       >
-                        <Form style={{ width: '90px', textAlign: 'center' }}>
+                        <Form onSubmit={e => this.onSubmitTargetForm(e, itemIdx, targetIdx, target.period)} style={{ width: '90px', textAlign: 'center' }}>
                           <Form.Field>
                             <Input
+                              // required
                               labelPosition="left"
                               size="mini"
                               placeholder="base"
                               iconPosition="left"
+                              onChange={(e, { value }) => {
+                                const cleanValue = value.replace(/[,]+/g, '.').trim();
+                                localState.addTargetForm.base = cleanValue;
+                                e.target.value = cleanValue;
+                                localState.addTargetForm.itemId = item.id;
+                                localState.addTargetForm.period = target.period;
+                                this.setState({ addTargetForm: localState.addTargetForm });
+                              }}
                             >
                               <input />
                               <Icon name="circle" style={styles.successIcon} />
@@ -427,10 +500,19 @@ class ItemList extends Component {
                           </Form.Field>
                           <Form.Field>
                             <Input
+                              // required
                               labelPosition="left"
                               size="mini"
                               placeholder="stretch"
                               iconPosition="left"
+                              onChange={(e, { value }) => {
+                                const cleanValue = value.replace(/[,]+/g, '.').trim();
+                                localState.addTargetForm.stretch = cleanValue;
+                                e.target.value = cleanValue;
+                                localState.addTargetForm.itemId = item.id;
+                                localState.addTargetForm.period = target.period;
+                                this.setState({ addTargetForm: localState.addTargetForm });
+                              }}
                             >
                               <input />
                               <Icon name="star" style={styles.starIcon} />
@@ -439,29 +521,41 @@ class ItemList extends Component {
                           <Button size="tiny" primary type="submit">Submit</Button>
                         </Form>
                       </Popup>
-                      <div style={styles.targetProgressInlineParent}><span><Icon name="circle" style={styles.successIcon} /> {target.base ? target.base : 0} </span><span><Icon name="star" style={styles.starIcon} /> {target.stretch ? target.stretch : 0}</span></div>
+                      <div style={styles.inlineParent}><span><Icon name="circle" style={styles.successIcon} /> {target.base ? target.base : 0} </span><span><Icon name="star" style={styles.starIcon} /> {target.stretch ? target.stretch : 0}</span></div>
                     </div>
                   ))}
                 </Table.Cell>
                 <Table.Cell>
-                  {item.Progresses.map(progress => (
+                  {item.Progresses.map((progress, progressIdx) => (
                     <div key={progress.id}>
                       <Popup
-                        position="right center"
-                        trigger={<div style={styles.targetAndProgress}>
-                          {<span style={styles.borderBottom}>{processMonthName(progress.period)}</span>}
-                        </div>}
+                        position="top center"
+                        trigger={
+                          <div style={styles.targetAndProgress}>
+                            {<span style={styles.borderBottom}>
+                              {processMonthName(progress.period)}
+                            </span>}
+                          </div>}
                         on="click"
                         size="mini"
                         wide
                       >
-                        <Form style={{ width: '110px', textAlign: 'center' }}>
+                        <Form onSubmit={e => this.onSubmitProgressForm(e, { itemIdx, progressIdx })} style={{ width: '110px', textAlign: 'center' }}>
                           <Form.Field>
                             <Input
                               labelPosition="left"
                               size="mini"
                               placeholder="nilai progress"
                               iconPosition="left"
+                              onChange={(e, { value }) => {
+                                const cleanValue = value.replace(/[,]+/g, '.').trim();
+                                localState.addProgressForm.value = cleanValue;
+                                e.target.value = cleanValue;
+                                localState.addProgressForm.itemId = item.id;
+                                localState.addProgressForm.period = progress.period;
+                                localState.addProgressForm.value = cleanValue;
+                                this.setState({ addProgressForm: localState.addProgressForm });
+                              }}
                             >
                               <input />
                               <Icon name="line chart" />
@@ -470,43 +564,38 @@ class ItemList extends Component {
                           <Button size="tiny" primary type="submit">Submit</Button>
                         </Form>
                       </Popup>
-                      <div style={styles.targetProgressInlineParent}><span>{progress.value ? progress.value : 0} </span></div>
+                      <div style={styles.inlineParent}><span>{progress.value ? progress.value : 0} </span></div>
                     </div>
                   ))}
                 </Table.Cell>
-                <Table.Cell>
+                <Table.Cell style={styles.paddingCell}>
                   {item.Statuses.map(status => (
                     <div style={styles.itemProperties} key={status.id}>
-                      <span>
+                      <div>
                         {processMonthName(status.period)}
-                      </span>
-                      <Popup
-                        trigger={processDot(status.stats)}
-                        on="hover"
-                        size="mini"
-                        wide
-                      >
-                        <Header>{status.value ? `${numeral(status.value).format('0.0')} %` : '0 %'}</Header>
-                      </Popup>
+                        {processDot(status.stats)}
+                      </div>
+                      <div style={styles.inlineParent}>
+                        <span>
+                          {status.value ? `${numeral(status.value).format('0.0')} %` : '0 %'}
+                        </span>
+                      </div>
+                        
                     </div>
                   ))}
                 </Table.Cell>
                 <Table.Cell>
+                  {this.sortPerformance(item.Performances)}
                   {item.Performances.map(performance => (
                     <div style={styles.itemProperties} key={performance.id}>
-                      <Popup
-                        trigger={
-                          <span style={styles.borderBottom}>
-                            {processMonthName(performance.period)}
-                          </span>
-                        }
-                        on="hover"
-                        size="mini"
-                        wide
-                        position="right center"
-                      >
-                        <Header>{performance.value ? `${numeral(performance.value).format('0.0')} %` : '0 %'}</Header>
-                      </Popup>
+                      <div>
+                        {processMonthName(performance.period)}
+                      </div>
+                      <div style={styles.inlineParent}>
+                        <span>
+                          {performance.value ? `${numeral(performance.value).format('0.00')} %` : 0}
+                        </span>
+                      </div>
                     </div>
                   ))}
                 </Table.Cell>
@@ -568,8 +657,8 @@ const mapDispatchToProps = dispatch => ({
   getItems: () => {
     dispatch(getItems());
   },
-  closeSuccessAddItemMsgInBelowNavbar: () => {
-    dispatch(closeSuccessAddItemMsgInBelowNavbar());
+  closeAddItemSuccessMsg: () => {
+    dispatch(closeAddItemSuccessMsg());
   },
   getWorkerThatHasNoItemYetForDelegateLogic: (itemId) => {
     dispatch(getWorkerThatHasNoItemYetForDelegateLogic(itemId));
@@ -594,6 +683,15 @@ const mapDispatchToProps = dispatch => ({
   },
   turnOffFilterByItsMakerAndCategory: (properties) => {
     dispatch(turnOffFilterByItsMakerAndCategory(properties));
+  },
+  addItemBaseAndStretchInTarget: (targetFormProperties, itemIdx, targetIdx, period) => {
+    dispatch(addItemBaseAndStretchInTarget(targetFormProperties, itemIdx, targetIdx, period));
+  },
+  removeMsgFromAddTarget: () => {
+    dispatch(removeMsgFromAddTarget());
+  },
+  addValueInProgressItem: (progressFomProperties, positionData) => {
+    dispatch(addValueInProgressItem(progressFomProperties, positionData));
   },
 });
 

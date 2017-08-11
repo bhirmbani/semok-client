@@ -60,9 +60,11 @@ export const addItem = itemData => (dispatch) => {
   })
     .then((res) => {
       if (res.data.ok) {
-        dispatch(msgFromAddItemSuccess(res.data.msg));
-        // dispatch(addItemSuccess(res.data));
         dispatch(getItemPropertiesForAddItemLogic(res.data.createdItem.id));
+        dispatch(msgFromAddItemSuccess(res.data.msg));
+        dispatch({
+          type: actionType.CLOSE_ADD_ITEM_SUCCESS_MSG,
+        });
         dispatch(getItemWithIdAndName());
       } else {
         dispatch(msgFromAddItemError(res.data.msg));
@@ -101,15 +103,72 @@ export const getItemWithTargets = itemId => (dispatch) => {
     });
 };
 
-const addItemBaseAndStretchInTarget = targetFormProperties => (dispatch) => {
-  axios.post('http://localhost:3000/api/item/target', {
+export const addItemBaseAndStretchInTarget = (
+  targetFormProperties, itemIdx, targetIdx, period) => (dispatch) => {
+  axios.post('http://localhost:3000/api/item/target', targetFormProperties, {
     headers: { token: localStorage.getItem('token') },
   })
     .then((res) => {
-      if (res.data.ok && res.data.updatedTarget) {
+      if (res.data.ok && res.data.ref === 910) {
+        dispatch({
+          type: actionType.MSG_FROM_ADD_TARGET_SUCCESS,
+          payload: res.data,
+        });
+        dispatch({
+          type: actionType.REMOVE_MSG_FROM_ADD_TARGET,
+        });
         dispatch({
           type: actionType.ADD_ITEM_BASE_AND_STRETCH_IN_TARGET,
-          payload: res,
+          payload: {
+            targetData: res.data,
+            itemIdx,
+            targetIdx,
+            targetPeriod: period,
+          },
+        });
+      } else if (res.data.ok && res.data.ref === 1048) {
+        dispatch({
+          type: actionType.ADD_ITEM_BASE_AND_STRETCH_IN_TARGET,
+          payload: {
+            targetData: res.data,
+            itemIdx,
+            targetIdx,
+            targetPeriod: period,
+          },
+        });
+      } else if (!res.data.ok) {
+        dispatch({
+          type: actionType.MSG_FROM_ADD_TARGET_ERR,
+          payload: 'Pastikan dulu nilai target sudah terisi',
+        });
+        dispatch({
+          type: actionType.REMOVE_MSG_FROM_ADD_TARGET,
+        });
+      }
+    });
+};
+
+export const addValueInProgressItem = (progressFormProperties, positionData) => (dispatch) => {
+  axios.post('http://localhost:3000/api/item/progress', progressFormProperties, {
+    headers: { token: localStorage.getItem('token') },
+  })
+    .then((res) => {
+      if ((res.data.ok && res.data.ref === 1137) ||
+        (res.data.ok && res.data.ref === 1130)) {
+        dispatch({
+          type: actionType.ADD_VALUE_IN_PROGRESS_ITEM,
+          payload: {
+            progressData: res.data,
+            positionData,
+          },
+        });
+      } else if (res.data.ok && res.data.ref === 1146) {
+        dispatch({
+          type: actionType.UPDATE_VALUE_IN_PROGRESS_ITEM,
+          payload: {
+            progressData: res.data,
+            positionData,
+          },
         });
       }
     });
