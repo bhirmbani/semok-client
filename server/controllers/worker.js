@@ -17,7 +17,7 @@ methods.create = (req, res, next) => {
     res.json({ msg: 'password tidak boleh kosong', ok: false });
   } else {
     models.Worker.findOne({
-      where: { email: req.body.email },
+      where: { email: req.body.email.trim() },
     })
     .then((user) => {
       if (!user) {
@@ -27,9 +27,9 @@ methods.create = (req, res, next) => {
           res.json({ msg: `pekerja tidak bisa memiliki role ${req.body.role}`, ok: false });
         } else {
           const salt = bcrypt.genSaltSync(10);
-          const email = req.body.email;
-          const name = req.body.name;
-          const role = req.body.role;
+          const email = req.body.email.trim();
+          const name = req.body.name.trim();
+          const role = req.body.role.trim();
           const password = bcrypt.hashSync(req.body.password, salt);
           models.Worker.create({
             name,
