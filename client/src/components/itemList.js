@@ -184,6 +184,10 @@ const processMonthName = (period) => {
   }
 };
 
+const sortPerformance = (array) => {
+  array.sort((a, b) => a.period - b.period);
+};
+
 class ItemList extends Component {
   constructor(props) {
     super(props);
@@ -244,6 +248,55 @@ class ItemList extends Component {
     this.props.turnOffFilterByItsMakerAndCategory();
   }
 
+  renderPopUpForDescription() {
+
+  }
+
+  showAddItemSuccessMsg() {
+    if (this.props.msgReducer.addItem.msg.isSuccessMsgShowed) {
+      toast.success(this.props.msgReducer.addItem.msg.content);
+    }
+  }
+
+  showAddTargetMsg() {
+    if (this.props.msgReducer.addTarget.msg.isSuccessMsgShowed) {
+      toast.success(this.props.msgReducer.addTarget.msg.content);
+    } else if (this.props.msgReducer.addTarget.msg.isErrMsgShowed) {
+      toast.error(this.props.msgReducer.addTarget.msg.content);
+    }
+  }
+
+  showAddProgressMsg() {
+    if (this.props.msgReducer.addProgress.msg.isErrMsgShowed) {
+      toast.error(this.props.msgReducer.addProgress.msg.content);
+    }
+  }
+
+  renderPopupForCategory(item) {
+    return (<Popup
+      trigger={<span style={styles.itemCat}>{item.Category ? item.Category.name : 'tidak ada kategori'}</span>}
+      on="click"
+      flowing
+      size="mini"
+      wide
+      position="bottom left"
+      // onOpen={() => {
+      //   // this.props.getWorkerThatHasNoItemYetForDelegateLogic(item.id);
+      //   // const tempState = { ...this.state };
+      //   // this.setState({ delegateItemForm: {
+      //   //   itemId: item.id,
+      //   //   workerId: tempState.delegateItemForm.workerId,
+      //   // },
+      //   // });
+      // }}
+    >
+      {/* <Form style={styles.centerPos} onSubmit={e => this.onSubmitDelegateForm(e)}>
+        {this.renderDropdownOptions()}
+      </Form> */}
+      {/* <Button size="tiny" icon="info" content="Detail" /> */}
+    </Popup>);
+  }
+
   renderDropdownOptions() {
     if (this.props.workerReducer.delegateItem.workerList) {
       if (this.props.workerReducer.delegateItem.workerList.length === 0) {
@@ -283,58 +336,8 @@ class ItemList extends Component {
     );
   }
 
-  renderPopupForCategory(item) {
-    return (<Popup
-      trigger={<span style={styles.itemCat}>{item.Category ? item.Category.name : 'tidak ada kategori'}</span>}
-      on="click"
-      flowing
-      size="mini"
-      wide
-      position="bottom left"
-      // onOpen={() => {
-      //   // this.props.getWorkerThatHasNoItemYetForDelegateLogic(item.id);
-      //   // const tempState = { ...this.state };
-      //   // this.setState({ delegateItemForm: {
-      //   //   itemId: item.id,
-      //   //   workerId: tempState.delegateItemForm.workerId,
-      //   // },
-      //   // });
-      // }}
-    >
-      {/* <Form style={styles.centerPos} onSubmit={e => this.onSubmitDelegateForm(e)}>
-        {this.renderDropdownOptions()}
-      </Form> */}
-      {/* <Button size="tiny" icon="info" content="Detail" /> */}
-    </Popup>);
-  }
-
-  renderPopUpForDescription() {
-
-  }
-
-  showAddItemSuccessMsg() {
-    if (this.props.msgReducer.addItem.msg.isSuccessMsgShowed) {
-      toast.success(this.props.msgReducer.addItem.msg.content);
-    }
-  }
-
-  showAddTargetMsg() {
-    if (this.props.msgReducer.addTarget.msg.isSuccessMsgShowed) {
-      toast.success(this.props.msgReducer.addTarget.msg.content);
-    } else if (this.props.msgReducer.addTarget.msg.isErrMsgShowed) {
-      toast.error(this.props.msgReducer.addTarget.msg.content);
-    }
-  }
-
-  sortPerformance(array) {
-    array.sort((a, b) => {
-      return a.period - b.period;
-    });
-  }
-
   render() {
     const localState = this.state;
-    // console.log(this.state.addProgressForm)
     // let workerDefaultValue = null;
     // const catDefaultValue = null;
     if (!this.props.itemReducer.items) {
@@ -386,6 +389,10 @@ class ItemList extends Component {
         {
           this.showAddItemSuccessMsg()
         }
+        { /* this is msg to be showed when addprogress value err */ }
+        {
+          this.showAddProgressMsg()
+        }
         { /* this is msg when delegate item success */}
         {(this.props.msgReducer.delegateItem.msg.isSuccessMsgShowed) &&
           <Message
@@ -416,7 +423,9 @@ class ItemList extends Component {
               <Table.HeaderCell>Kategori</Table.HeaderCell>
               <Table.HeaderCell>Deskripsi</Table.HeaderCell>
               <Table.HeaderCell>Target</Table.HeaderCell>
-              <Table.HeaderCell>Progress <Icon name="line chart" style={styles.titleIcon} /></Table.HeaderCell>
+              <Table.HeaderCell>Progress
+                <Icon name="line chart" style={styles.titleIcon} />
+              </Table.HeaderCell>
               <Table.HeaderCell style={{ width: '11em' }}>Deviation</Table.HeaderCell>
               <Table.HeaderCell>Performance</Table.HeaderCell>
             </Table.Row>
@@ -462,16 +471,18 @@ class ItemList extends Component {
                         position="top center"
                         trigger={
                           <div style={styles.targetAndProgress}>
-                            {<span style={styles.borderBottom}>{processMonthName(target.period)}</span>}
+                            {<span style={styles.borderBottom}>
+                              {processMonthName(target.period)}
+                            </span>}
                           </div>}
                         on="click"
                         size="mini"
                         wide
                         onOpen={() => this.setState({
                           addTargetForm: {
-                            itemId: null,
-                            base: target.base,
-                            stretch: target.stretch,
+                            itemId: item.id,
+                            base: null,
+                            stretch: null,
                             period: target.period,
                           },
                         })}
@@ -492,6 +503,22 @@ class ItemList extends Component {
                                 localState.addTargetForm.itemId = item.id;
                                 localState.addTargetForm.period = target.period;
                                 this.setState({ addTargetForm: localState.addTargetForm });
+                                this.setState({
+                                  addTargetForm:
+                                  {
+                                    ...localState.addTargetForm,
+                                    stretch: localState.addTargetForm.stretch ? localState.addTargetForm.stretch : target.stretch,
+                                  },
+                                });
+                                if (value === '') {
+                                  this.setState({
+                                    addTargetForm: {
+                                      ...localState.addTargetForm,
+                                      base: null,
+                                      stretch: null,
+                                    },
+                                  });
+                                }
                               }}
                             >
                               <input />
@@ -512,6 +539,22 @@ class ItemList extends Component {
                                 localState.addTargetForm.itemId = item.id;
                                 localState.addTargetForm.period = target.period;
                                 this.setState({ addTargetForm: localState.addTargetForm });
+                                this.setState({
+                                  addTargetForm:
+                                  {
+                                    ...localState.addTargetForm,
+                                    base: localState.addTargetForm.base ? localState.addTargetForm.base : target.base,
+                                  },
+                                });
+                                if (value === '') {
+                                  this.setState({
+                                    addTargetForm: {
+                                      ...localState.addTargetForm,
+                                      stretch: null,
+                                      base: null,
+                                    },
+                                  });
+                                }
                               }}
                             >
                               <input />
@@ -521,7 +564,15 @@ class ItemList extends Component {
                           <Button size="tiny" primary type="submit">Submit</Button>
                         </Form>
                       </Popup>
-                      <div style={styles.inlineParent}><span><Icon name="circle" style={styles.successIcon} /> {target.base ? target.base : 0} </span><span><Icon name="star" style={styles.starIcon} /> {target.stretch ? target.stretch : 0}</span></div>
+                      <div style={styles.inlineParent}>
+                        <span>
+                          <Icon name="circle" style={styles.successIcon} />
+                          {target.base ? target.base : 0}
+                        </span>
+                        <span><Icon name="star" style={styles.starIcon} />
+                          {target.stretch ? target.stretch : 0}
+                        </span>
+                      </div>
                     </div>
                   ))}
                 </Table.Cell>
@@ -539,6 +590,13 @@ class ItemList extends Component {
                         on="click"
                         size="mini"
                         wide
+                        onOpen={() => this.setState({
+                          addProgressForm: {
+                            itemId: item.id,
+                            value: null,
+                            period: progress.period,
+                          },
+                        })}
                       >
                         <Form onSubmit={e => this.onSubmitProgressForm(e, { itemIdx, progressIdx })} style={{ width: '110px', textAlign: 'center' }}>
                           <Form.Field>
@@ -564,7 +622,11 @@ class ItemList extends Component {
                           <Button size="tiny" primary type="submit">Submit</Button>
                         </Form>
                       </Popup>
-                      <div style={styles.inlineParent}><span>{progress.value ? progress.value : 0} </span></div>
+                      <div style={styles.inlineParent}>
+                        <span>
+                          {progress.value ? progress.value : 0}
+                        </span>
+                      </div>
                     </div>
                   ))}
                 </Table.Cell>
@@ -580,12 +642,12 @@ class ItemList extends Component {
                           {status.value ? `${numeral(status.value).format('0.0')} %` : '0 %'}
                         </span>
                       </div>
-                        
+
                     </div>
                   ))}
                 </Table.Cell>
                 <Table.Cell>
-                  {this.sortPerformance(item.Performances)}
+                  {sortPerformance(item.Performances)}
                   {item.Performances.map(performance => (
                     <div style={styles.itemProperties} key={performance.id}>
                       <div>

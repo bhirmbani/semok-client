@@ -139,7 +139,7 @@ export const addItemBaseAndStretchInTarget = (
       } else if (!res.data.ok) {
         dispatch({
           type: actionType.MSG_FROM_ADD_TARGET_ERR,
-          payload: 'Pastikan dulu nilai target sudah terisi',
+          payload: res.data.msg,
         });
         dispatch({
           type: actionType.REMOVE_MSG_FROM_ADD_TARGET,
@@ -169,6 +169,15 @@ export const addValueInProgressItem = (progressFormProperties, positionData) => 
             progressData: res.data,
             positionData,
           },
+        });
+      } else {
+        console.log(res.data)
+        dispatch({
+          type: actionType.OPEN_ERR_MSG_IN_ADD_PROGRESS_VALUE,
+          payload: res.data.msg,
+        });
+        dispatch({
+          type: actionType.CLOSE_ERR_MSG_IN_ADD_PROGRESS_VALUE,
         });
       }
     });

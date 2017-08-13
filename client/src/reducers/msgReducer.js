@@ -34,6 +34,15 @@ const initialState = {
       isErrMsgShowed: false,
     },
   },
+  addProgress: {
+    msg: {
+      context: null,
+      content: null,
+      ok: null,
+      isSuccessMsgShowed: false,
+      isErrMsgShowed: false,
+    },
+  },
 };
 
 const openModal = (state) => {
@@ -315,6 +324,38 @@ const closeErrMsgInDelegatingItem = (state) => {
   return newState;
 };
 
+const openErrMsgInAddProgressValue = (state, payload) => {
+  const newState = {
+    ...state,
+    addProgress: {
+      msg: {
+        context: null,
+        content: payload,
+        ok: false,
+        isSuccessMsgShowed: false,
+        isErrMsgShowed: true,
+      },
+    },
+  };
+  return newState;
+};
+
+const closeErrMsgInAddProgressValue = (state) => {
+  const newState = {
+    ...state,
+    addProgress: {
+      msg: {
+        context: null,
+        content: null,
+        ok: false,
+        isSuccessMsgShowed: false,
+        isErrMsgShowed: false,
+      },
+    },
+  };
+  return newState;
+};
+
 const msgReducer = (state = initialState, { type, payload }) => {
   switch (type) {
     case actionType.OPEN_WELCOME_MSG_IF_USER_SUCCESSFULLY_LOGIN:
@@ -370,6 +411,12 @@ const msgReducer = (state = initialState, { type, payload }) => {
 
     case actionType.REMOVE_MSG_FROM_ADD_TARGET:
       return removeMsgFromAddTarget(state);
+
+    case actionType.OPEN_ERR_MSG_IN_ADD_PROGRESS_VALUE:
+      return openErrMsgInAddProgressValue(state, payload);
+
+    case actionType.CLOSE_ERR_MSG_IN_ADD_PROGRESS_VALUE:
+      return closeErrMsgInAddProgressValue(state);
 
     default:
       return state;
