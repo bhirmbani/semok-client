@@ -1018,7 +1018,7 @@ methods.updateTargetScore = (req, res, next) => {
                                   stats: updatedStats.stats,
                                 })
                               .then((statusResult) => {
-                                res.json({ ref: 1048, updatedTarget, statusResult, performanceResult, ok: true, msg: 'sukses memperbarui data status' });
+                                res.json({ ref: 1048, updatedTarget, statusResult, performanceResult, ok: true, msg: 'sukses memperbarui data' });
                               });
                               });
                             });
@@ -1209,7 +1209,7 @@ methods.addNewProgress = (req, res, next) => {
                                     performanceId: performanceResult.id,
                                     itemId: item.id,
                                   });
-                                  res.json({ ref: 1137, msg: 'berhasil update progress value', filteredProgress, progressResult, filteredTargets, statusItemRef, statusResult, performanceResult, ok: true });
+                                  res.json({ ref: 1137, msg: 'berhasil meperbarui nilai progress', filteredProgress, progressResult, filteredTargets, statusItemRef, statusResult, performanceResult, ok: true });
                                 });
                               } else {
                                 const perfValue = (filteredBobots[0].value / 100) * (statusResult.value / 100) * 100;
@@ -1222,7 +1222,7 @@ methods.addNewProgress = (req, res, next) => {
                                     performanceId: performanceResult.id,
                                     itemId: item.id,
                                   });
-                                  res.json({ ref: 1130, msg: 'berhasil update progress value', filteredProgress, progressResult, filteredTargets, statusItemRef, statusResult, performanceResult, ok: true });
+                                  res.json({ ref: 1130, msg: 'berhasil memperbarui nilai progress', filteredProgress, progressResult, filteredTargets, statusItemRef, statusResult, performanceResult, ok: true });
                                 });
                                 // res.json({ ref: 1157, msg: 'update performance di sini', perf });
                               }
@@ -1241,7 +1241,7 @@ methods.addNewProgress = (req, res, next) => {
                               value: perfValue,
                             })
                             .then((performanceResult) => {
-                              res.json({ filter, ref: 1146, msg: 'berhasil update progress value', filteredProgress, progressResult, filteredTargets, statusResult, performanceResult, ok: true });
+                              res.json({ filter, ref: 1146, msg: 'berhasil memperbarui nilai progress', filteredProgress, progressResult, filteredTargets, statusResult, performanceResult, ok: true });
                             });
                           });
                         }
@@ -1254,7 +1254,7 @@ methods.addNewProgress = (req, res, next) => {
           }
         });
       } else {
-        res.json({ msg: 'masukan dulu nilai progress.', ok: false });
+        res.json({ msg: 'masukan dulu nilai progress', ok: false });
       }
     });
   }

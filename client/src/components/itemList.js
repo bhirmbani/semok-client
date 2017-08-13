@@ -267,7 +267,9 @@ class ItemList extends Component {
   }
 
   showAddProgressMsg() {
-    if (this.props.msgReducer.addProgress.msg.isErrMsgShowed) {
+    if (this.props.msgReducer.addProgress.msg.isSuccessMsgShowed) {
+      toast.success(this.props.msgReducer.addProgress.msg.content);
+    } else if (this.props.msgReducer.addProgress.msg.isErrMsgShowed) {
       toast.error(this.props.msgReducer.addProgress.msg.content);
     }
   }
@@ -389,7 +391,7 @@ class ItemList extends Component {
         {
           this.showAddItemSuccessMsg()
         }
-        { /* this is msg to be showed when addprogress value err */ }
+        { /* this is msg to be showed when addprogress value success or error */ }
         {
           this.showAddProgressMsg()
         }

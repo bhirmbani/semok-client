@@ -128,6 +128,13 @@ export const addItemBaseAndStretchInTarget = (
         });
       } else if (res.data.ok && res.data.ref === 1048) {
         dispatch({
+          type: actionType.MSG_FROM_ADD_TARGET_SUCCESS,
+          payload: res.data,
+        });
+        dispatch({
+          type: actionType.REMOVE_MSG_FROM_ADD_TARGET,
+        });
+        dispatch({
           type: actionType.ADD_ITEM_BASE_AND_STRETCH_IN_TARGET,
           payload: {
             targetData: res.data,
@@ -156,6 +163,13 @@ export const addValueInProgressItem = (progressFormProperties, positionData) => 
       if ((res.data.ok && res.data.ref === 1137) ||
         (res.data.ok && res.data.ref === 1130)) {
         dispatch({
+          type: actionType.OPEN_SUCCESS_MSG_IN_ADD_PROGRESS_VALUE,
+          payload: res.data.msg,
+        });
+        dispatch({
+          type: actionType.CLOSE_SUCCESS_MSG_IN_ADD_PROGRESS_VALUE,
+        });
+        dispatch({
           type: actionType.ADD_VALUE_IN_PROGRESS_ITEM,
           payload: {
             progressData: res.data,
@@ -164,6 +178,13 @@ export const addValueInProgressItem = (progressFormProperties, positionData) => 
         });
       } else if (res.data.ok && res.data.ref === 1146) {
         dispatch({
+          type: actionType.OPEN_SUCCESS_MSG_IN_ADD_PROGRESS_VALUE,
+          payload: res.data.msg,
+        });
+        dispatch({
+          type: actionType.CLOSE_SUCCESS_MSG_IN_ADD_PROGRESS_VALUE,
+        });
+        dispatch({
           type: actionType.UPDATE_VALUE_IN_PROGRESS_ITEM,
           payload: {
             progressData: res.data,
@@ -171,7 +192,6 @@ export const addValueInProgressItem = (progressFormProperties, positionData) => 
           },
         });
       } else {
-        console.log(res.data)
         dispatch({
           type: actionType.OPEN_ERR_MSG_IN_ADD_PROGRESS_VALUE,
           payload: res.data.msg,
