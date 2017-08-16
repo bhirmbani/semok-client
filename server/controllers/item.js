@@ -188,7 +188,7 @@ methods.create = (req, res, next) => {
                 }
               });
             } else {
-              res.json({ ref: 222, msg: { context: 'Apa Anda tidak Salah Input?', content: `Soalnya item dengan nama ${sameName[0].name} sudah ada.` }, ok: false });
+              res.json({ ref: 222, msg: { context: 'Apa Anda tidak Salah Input?', content: `Soalnya item dengan nama ${sameName[0].name} sudah ada. Mungkin Anda mau edit nama itemnya?` }, ok: false });
             }
           });
         } else {
@@ -918,6 +918,7 @@ methods.getItemWithInfo = (req, res, next) => {
     });
   }
 };
+
 // yang bisa update target hanya yang punya item dan admin
 methods.updateTargetScore = (req, res, next) => {
   const decoded = helper.decode(req.headers.token);
@@ -1018,7 +1019,7 @@ methods.updateTargetScore = (req, res, next) => {
                                   stats: updatedStats.stats,
                                 })
                               .then((statusResult) => {
-                                res.json({ ref: 1048, updatedTarget, statusResult, performanceResult, ok: true, msg: 'sukses memperbarui data' });
+                                res.json({ ref: 1048, updatedTarget, statusResult, performanceResult, ok: true, msg: `item ${item.name} berhasil diperbarui targetnya untuk bulan ${utility.processMonthName(updatedTarget.period)}.` });
                               });
                               });
                             });
@@ -1209,7 +1210,7 @@ methods.addNewProgress = (req, res, next) => {
                                     performanceId: performanceResult.id,
                                     itemId: item.id,
                                   });
-                                  res.json({ ref: 1137, msg: 'berhasil meperbarui nilai progress', filteredProgress, progressResult, filteredTargets, statusItemRef, statusResult, performanceResult, ok: true });
+                                  res.json({ ref: 1137, msg: `item ${item.name} berhasil diperbarui nilai progressnya untuk bulan ${utility.processMonthName(filteredProgress[0].period)}`, filteredProgress, progressResult, filteredTargets, statusItemRef, statusResult, performanceResult, ok: true });
                                 });
                               } else {
                                 const perfValue = (filteredBobots[0].value / 100) * (statusResult.value / 100) * 100;
@@ -1222,7 +1223,7 @@ methods.addNewProgress = (req, res, next) => {
                                     performanceId: performanceResult.id,
                                     itemId: item.id,
                                   });
-                                  res.json({ ref: 1130, msg: 'berhasil memperbarui nilai progress', filteredProgress, progressResult, filteredTargets, statusItemRef, statusResult, performanceResult, ok: true });
+                                  res.json({ ref: 1130, msg: `item ${item.name} berhasil diperbarui nilai progressnya untuk bulan ${utility.processMonthName(filteredProgress[0].period)}`, filteredProgress, progressResult, filteredTargets, statusItemRef, statusResult, performanceResult, ok: true });
                                 });
                                 // res.json({ ref: 1157, msg: 'update performance di sini', perf });
                               }
@@ -1241,7 +1242,7 @@ methods.addNewProgress = (req, res, next) => {
                               value: perfValue,
                             })
                             .then((performanceResult) => {
-                              res.json({ filter, ref: 1146, msg: 'berhasil memperbarui nilai progress', filteredProgress, progressResult, filteredTargets, statusResult, performanceResult, ok: true });
+                              res.json({ filter, ref: 1146, msg: `item ${item.name} berhasil diperbarui nilai progressnya untuk bulan ${utility.processMonthName(filteredProgress[0].period)}`, filteredProgress, progressResult, filteredTargets, statusResult, performanceResult, ok: true });
                             });
                           });
                         }

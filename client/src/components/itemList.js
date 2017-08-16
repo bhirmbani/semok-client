@@ -2,8 +2,7 @@ import React, { Component } from 'react';
 import { Table, Message, Popup, Button, Form, Select, Dropdown, Icon, Header, Input } from 'semantic-ui-react';
 import { connect } from 'react-redux';
 import numeral from 'numeral';
-import { toast } from 'react-toastify';
-import voca from 'voca';
+import { notify } from 'react-notify-toast';
 
 import {
   getItems,
@@ -19,6 +18,9 @@ import {
   addItemBaseAndStretchInTarget,
   removeMsgFromAddTarget,
   addValueInProgressItem,
+  getTargetsFromFirebase,
+  getProgressesFromFirebase,
+  getAddItemFromFirebase,
 } from '../actions';
 
 const ignoreTitleCase = [
@@ -219,12 +221,21 @@ class ItemList extends Component {
     };
   }
 
+  // componentWillMount() {
+  //   if (this.props.msgReducer.addTarget.msg.isSuccessMsgShowed) {
+  //     this.props.getTargetsFromFirebase();
+  //   }
+  // }
+
   componentDidMount() {
     if (!this.props.itemReducer.items) {
       this.props.getItems();
       this.props.getWorkersWithoutAdminForFilterInTableItem();
       this.props.getCategoriesForFilteringItem();
     }
+    this.props.getTargetsFromFirebase();
+    this.props.getProgressesFromFirebase();
+    this.props.getAddItemFromFirebase();
   }
 
   onSubmitProgressForm(e, positionData) {
@@ -243,6 +254,20 @@ class ItemList extends Component {
     this.props.delegateItem(this.state.delegateItemForm);
   }
 
+  componentDidUpdate() {
+    if (this.props.msgReducer.addTarget.msg.isSuccessMsgShowed) {
+      notify.show(this.props.msgReducer.addTarget.msg.content, 'success', 5000);
+    } else if (this.props.msgReducer.addTarget.msg.isErrMsgShowed) {
+      notify.show(this.props.msgReducer.addTarget.msg.content, 'error', 5000);
+    } else if (this.props.msgReducer.addProgress.msg.isSuccessMsgShowed) {
+      notify.show(this.props.msgReducer.addProgress.msg.content, 'success', 5000);
+    } else if (this.props.msgReducer.addProgress.msg.isErrMsgShowed) {
+      notify.show(this.props.msgReducer.addProgress.msg.content, 'error', 5000);
+    } else if (this.props.msgReducer.addItem.msg.isSuccessMsgShowed) {
+      notify.show(this.props.msgReducer.addItem.msg.content, 'success', 5000);
+    }
+  }
+
   onTurnOffFilterItem(e) {
     e.preventDefault();
     this.props.turnOffFilterByItsMakerAndCategory();
@@ -251,28 +276,28 @@ class ItemList extends Component {
   renderPopUpForDescription() {
 
   }
+  
+  // showAddItemSuccessMsg() {
+  //   if (this.props.msgReducer.addItem.msg.isSuccessMsgShowed) {
+  //     notify.show(this.props.msgReducer.addItem.msg.content, 'success', 2000);
+  //   }
+  // }
 
-  showAddItemSuccessMsg() {
-    if (this.props.msgReducer.addItem.msg.isSuccessMsgShowed) {
-      toast.success(this.props.msgReducer.addItem.msg.content);
-    }
-  }
+  // showAddTargetMsg() {
+  //   if (this.props.msgReducer.addTarget.msg.isSuccessMsgShowed) {
+  //     notify.show(this.props.msgReducer.addTarget.msg.content, 'success', 2000);
+  //   } else if (this.props.msgReducer.addTarget.msg.isErrMsgShowed) {
+  //     notify.show(this.props.msgReducer.addTarget.msg.content, 'error', 2000);
+  //   }
+  // }
 
-  showAddTargetMsg() {
-    if (this.props.msgReducer.addTarget.msg.isSuccessMsgShowed) {
-      toast.success(this.props.msgReducer.addTarget.msg.content);
-    } else if (this.props.msgReducer.addTarget.msg.isErrMsgShowed) {
-      toast.error(this.props.msgReducer.addTarget.msg.content);
-    }
-  }
-
-  showAddProgressMsg() {
-    if (this.props.msgReducer.addProgress.msg.isSuccessMsgShowed) {
-      toast.success(this.props.msgReducer.addProgress.msg.content);
-    } else if (this.props.msgReducer.addProgress.msg.isErrMsgShowed) {
-      toast.error(this.props.msgReducer.addProgress.msg.content);
-    }
-  }
+  // showAddProgressMsg() {
+  //   if (this.props.msgReducer.addProgress.msg.isSuccessMsgShowed) {
+  //     notify.show(this.props.msgReducer.addProgress.msg.content, 'success', 2000);
+  //   } else if (this.props.msgReducer.addProgress.msg.isErrMsgShowed) {
+  //     notify.show(this.props.msgReducer.addProgress.msg.content, 'error', 2000);
+  //   }
+  // }
 
   renderPopupForCategory(item) {
     return (<Popup
@@ -385,15 +410,15 @@ class ItemList extends Component {
           />
         </span>
         { /* this is msg to be showed when add target success or error */ 
-          this.showAddTargetMsg()
+          // this.showAddTargetMsg()
         }
         { /* this is msg to be showed when additem success */ }
         {
-          this.showAddItemSuccessMsg()
+          // this.showAddItemSuccessMsg()
         }
         { /* this is msg to be showed when addprogress value success or error */ }
         {
-          this.showAddProgressMsg()
+          // this.showAddProgressMsg()
         }
         { /* this is msg when delegate item success */}
         {(this.props.msgReducer.delegateItem.msg.isSuccessMsgShowed) &&
@@ -756,6 +781,15 @@ const mapDispatchToProps = dispatch => ({
   },
   addValueInProgressItem: (progressFomProperties, positionData) => {
     dispatch(addValueInProgressItem(progressFomProperties, positionData));
+  },
+  getTargetsFromFirebase: () => {
+    dispatch(getTargetsFromFirebase());
+  },
+  getProgressesFromFirebase: () => {
+    dispatch(getProgressesFromFirebase());
+  },
+  getAddItemFromFirebase: () => {
+    dispatch(getAddItemFromFirebase());
   },
 });
 
