@@ -69,7 +69,6 @@ const addItemBaseAndStretchInTarget = (state, payload) => {
       items: stateItems,
     };
   } else if (payload.targetData.ref === 1048) {
-
     const arrOfTargets = pickedItem.Targets.map((target) => {
       if (target.period === payload.targetData.updatedTarget.period) {
         return payload.targetData.updatedTarget;
@@ -139,69 +138,72 @@ const addValueInProgressItem = (state, payload) => {
 };
 
 const updateValueInProgressItem = (state, payload) => {
-  const period = state.items[payload.positionData.itemIdx]
-    .Progresses[payload.positionData.progressIdx].period;
-  const pickedItem = state.items[payload.positionData.itemIdx];
-  const updatedProgress = payload.progressData.progressResult;
-  const updatedStatus = payload.progressData.statusResult;
-  const updatedPerformance = payload.progressData.performanceResult;
+  if (state.items) {
+    const period = state.items[payload.positionData.itemIdx]
+      .Progresses[payload.positionData.progressIdx].period;
+    const pickedItem = state.items[payload.positionData.itemIdx];
+    const updatedProgress = payload.progressData.progressResult;
+    const updatedStatus = payload.progressData.statusResult;
+    const updatedPerformance = payload.progressData.performanceResult;
 
-  const arrOfProgress = pickedItem.Progresses.map((each) => {
-    if (each.period === period) {
-      return updatedProgress;
-    }
-    return each;
-  });
-  const arrOfStatus = pickedItem.Statuses.map((each) => {
-    if (each.period === period) {
-      return updatedStatus;
-    }
-    return each;
-  });
-  const arrOfPerformance = pickedItem.Performances.map((each) => {
-    if (each.period === period) {
-      return updatedPerformance;
-    }
-    return each;
-  });
+    const arrOfProgress = pickedItem.Progresses.map((each) => {
+      if (each.period === period) {
+        return updatedProgress;
+      }
+      return each;
+    });
+    const arrOfStatus = pickedItem.Statuses.map((each) => {
+      if (each.period === period) {
+        return updatedStatus;
+      }
+      return each;
+    });
+    const arrOfPerformance = pickedItem.Performances.map((each) => {
+      if (each.period === period) {
+        return updatedPerformance;
+      }
+      return each;
+    });
 
-  pickedItem.Progresses = arrOfProgress;
-  pickedItem.Statuses = arrOfStatus;
-  pickedItem.Performances = arrOfPerformance;
+    pickedItem.Progresses = arrOfProgress;
+    pickedItem.Statuses = arrOfStatus;
+    pickedItem.Performances = arrOfPerformance;
 
-  const stateItems = state.items;
-  stateItems.splice(payload.positionData.itemIdx, 1, pickedItem);
+    const stateItems = state.items;
+    stateItems.splice(payload.positionData.itemIdx, 1, pickedItem);
 
-  const updatedItem = {
-    ...state,
-    items: stateItems,
-  };
+    const updatedItem = {
+      ...state,
+      items: stateItems,
+    };
 
-  return updatedItem;
-// };
+    return updatedItem;
+    // };
 
-// const addItemSuccess = (state, payload) => {
-//   const newItem = {
-//     id: payload.createdItem.id,
-//     name: payload.createdItem.name,
-//     createdBy: payload.createdItem.createdBy,
-//     Category: payload.createdItem.Category,
-//     Workers: payload.createdItem.Workers,
-//     msg: payload.msg,
-//     description: payload.item.description,
-//     // Targets: state.temporaryItemPropertiesPerId.Targets,
-//     // Progresses: state.temporaryItemPropertiesPerId.Progresses,
-//     // Statuses: state.temporaryItemPropertiesPerId.Statuses,
-//     // Performances: state.temporaryItemPropertiesPerId.Performances,
-//   };
+    // const addItemSuccess = (state, payload) => {
+    //   const newItem = {
+    //     id: payload.createdItem.id,
+    //     name: payload.createdItem.name,
+    //     createdBy: payload.createdItem.createdBy,
+    //     Category: payload.createdItem.Category,
+    //     Workers: payload.createdItem.Workers,
+    //     msg: payload.msg,
+    //     description: payload.item.description,
+    //     // Targets: state.temporaryItemPropertiesPerId.Targets,
+    //     // Progresses: state.temporaryItemPropertiesPerId.Progresses,
+    //     // Statuses: state.temporaryItemPropertiesPerId.Statuses,
+    //     // Performances: state.temporaryItemPropertiesPerId.Performances,
+    //   };
 
-//   const newState = {
-//     ...state,
-//     items: [
-//       newItem,
-//       ...state.items,
-//     ] };
-//   return newState;
+    //   const newState = {
+    //     ...state,
+    //     items: [
+    //       newItem,
+    //       ...state.items,
+    //     ] };
+    //   return newState;
+  }
+  return state;
 };
 
 
@@ -228,10 +230,6 @@ const getItemWithTargets = (state, payload) => {
   };
   return newState;
 };
-
-// const getItemDeviationInCertainPeriod = (state, payload) => {
-
-// }
 
 const itemReducer = (state = initialState, { type, payload }) => {
   switch (type) {

@@ -1,6 +1,19 @@
 import axios from 'axios';
+import firebase from 'firebase';
 import * as actionType from './constants';
-import { msgFromAddItemError, msgFromAddItemSuccess } from './msgActions';
+import { msgFromAddItemError, msgFromAddItemSuccess, closeErrMsgInAddItemForm } from './msgActions';
+
+
+// Initialize Firebase
+const config = {
+  apiKey: 'AIzaSyDZXfoPHN4qUNMSoWg3y85gV6ZCui6s3KU',
+  databaseURL: 'https://bhirmbani.firebaseio.com',
+};
+firebase.initializeApp(config);
+
+const targets = firebase.database().ref('target');
+const progresses = firebase.database().ref('progress');
+const addItemRef = firebase.database().ref('item');
 
 export const getItemsSuccess = items => ({
   type: actionType.GET_ITEMS_RESULT,
@@ -60,14 +73,17 @@ export const addItem = itemData => (dispatch) => {
   })
     .then((res) => {
       if (res.data.ok) {
-        dispatch(getItemPropertiesForAddItemLogic(res.data.createdItem.id));
-        dispatch(msgFromAddItemSuccess(res.data.msg));
-        dispatch({
-          type: actionType.CLOSE_ADD_ITEM_SUCCESS_MSG,
+        addItemRef.set({
+          itemId: res.data.createdItem.id,
+          msg: res.data.msg,
+          ok: res.data.ok,
         });
-        dispatch(getItemWithIdAndName());
       } else {
         dispatch(msgFromAddItemError(res.data.msg));
+        // dispatch(closeErrMsgInAddItemForm());
+        // addItemRef.set({
+        //   msg: res.data.msg,
+        // });
       }
     });
 };
@@ -110,38 +126,20 @@ export const addItemBaseAndStretchInTarget = (
   })
     .then((res) => {
       if (res.data.ok && res.data.ref === 910) {
-        dispatch({
-          type: actionType.MSG_FROM_ADD_TARGET_SUCCESS,
-          payload: res.data,
-        });
-        dispatch({
-          type: actionType.REMOVE_MSG_FROM_ADD_TARGET,
-        });
-        dispatch({
-          type: actionType.ADD_ITEM_BASE_AND_STRETCH_IN_TARGET,
-          payload: {
-            targetData: res.data,
-            itemIdx,
-            targetIdx,
-            targetPeriod: period,
-          },
+        targets.set({
+          data: res.data,
+          itemIdx,
+          targetIdx,
+          targetPeriod: period,
+          ref: res.data.ref,
         });
       } else if (res.data.ok && res.data.ref === 1048) {
-        dispatch({
-          type: actionType.MSG_FROM_ADD_TARGET_SUCCESS,
-          payload: res.data,
-        });
-        dispatch({
-          type: actionType.REMOVE_MSG_FROM_ADD_TARGET,
-        });
-        dispatch({
-          type: actionType.ADD_ITEM_BASE_AND_STRETCH_IN_TARGET,
-          payload: {
-            targetData: res.data,
-            itemIdx,
-            targetIdx,
-            targetPeriod: period,
-          },
+        targets.set({
+          data: res.data,
+          itemIdx,
+          targetIdx,
+          targetPeriod: period,
+          ref: res.data.ref,
         });
       } else if (!res.data.ok) {
         dispatch({
@@ -151,6 +149,10 @@ export const addItemBaseAndStretchInTarget = (
         dispatch({
           type: actionType.REMOVE_MSG_FROM_ADD_TARGET,
         });
+        // targets.set({
+        //   ok: res.data.ok,
+        //   msg: res.data.msg,
+        // });
       }
     });
 };
@@ -162,34 +164,18 @@ export const addValueInProgressItem = (progressFormProperties, positionData) => 
     .then((res) => {
       if ((res.data.ok && res.data.ref === 1137) ||
         (res.data.ok && res.data.ref === 1130)) {
-        dispatch({
-          type: actionType.OPEN_SUCCESS_MSG_IN_ADD_PROGRESS_VALUE,
-          payload: res.data.msg,
-        });
-        dispatch({
-          type: actionType.CLOSE_SUCCESS_MSG_IN_ADD_PROGRESS_VALUE,
-        });
-        dispatch({
-          type: actionType.ADD_VALUE_IN_PROGRESS_ITEM,
-          payload: {
-            progressData: res.data,
-            positionData,
-          },
+        progresses.set({
+          msg: res.data.msg,
+          progressData: res.data,
+          positionData,
+          ref: res.data.ref,
         });
       } else if (res.data.ok && res.data.ref === 1146) {
-        dispatch({
-          type: actionType.OPEN_SUCCESS_MSG_IN_ADD_PROGRESS_VALUE,
-          payload: res.data.msg,
-        });
-        dispatch({
-          type: actionType.CLOSE_SUCCESS_MSG_IN_ADD_PROGRESS_VALUE,
-        });
-        dispatch({
-          type: actionType.UPDATE_VALUE_IN_PROGRESS_ITEM,
-          payload: {
-            progressData: res.data,
-            positionData,
-          },
+        progresses.set({
+          msg: res.data.msg,
+          progressData: res.data,
+          positionData,
+          ref: res.data.ref,
         });
       } else {
         dispatch({
@@ -197,22 +183,109 @@ export const addValueInProgressItem = (progressFormProperties, positionData) => 
           payload: res.data.msg,
         });
         dispatch({
-          type: actionType.CLOSE_ERR_MSG_IN_ADD_PROGRESS_VALUE,
+          type: actionType.CLOSE_MSG_IN_ADD_PROGRESS_VALUE,
         });
+        // progresses.set({
+        //   msg: res.data.msg,
+        // });
       }
     });
 };
 
-// export const resultOfGetItemDeviation = deviation => ({
-//   type: actionType.GET_ITEM_DEVIATION_IN_CERTAIN_PERIOD,
-//   payload: deviation,
-// });
+export const getTargetsFromFirebase = () => (dispatch) => {
+  targets.on('value', (data) => {
+    if (data.val() !== null) {
+      if (data.val().ref === 910) {
+        dispatch({
+          type: actionType.MSG_FROM_ADD_TARGET_SUCCESS,
+          payload: data.val().data,
+        });
+        dispatch({
+          type: actionType.REMOVE_MSG_FROM_ADD_TARGET,
+        });
+        dispatch({
+          type: actionType.ADD_ITEM_BASE_AND_STRETCH_IN_TARGET,
+          payload: {
+            targetData: data.val().data,
+            itemIdx: data.val().itemIdx,
+            targetIdx: data.val().targetIdx,
+            targetPeriod: data.val().targetPeriod,
+          },
+        });
+      } else if (data.val().ref === 1048) {
+        dispatch({
+          type: actionType.MSG_FROM_ADD_TARGET_SUCCESS,
+          payload: data.val().data,
+        });
+        dispatch({
+          type: actionType.REMOVE_MSG_FROM_ADD_TARGET,
+        });
+        dispatch({
+          type: actionType.ADD_ITEM_BASE_AND_STRETCH_IN_TARGET,
+          payload: {
+            targetData: data.val().data,
+            itemIdx: data.val().itemIdx,
+            targetIdx: data.val().targetIdx,
+            targetPeriod: data.val().targetPeriod,
+          },
+        });
+      }
+    }
+  });
+  targets.remove();
+};
 
-// export const getItemDeviationInCertainPeriod = (itemId, period) => (dispatch) => {
-//   axios.get(`http://localhost:3000/api/item/deviation/${itemId}/${period}`, {
-//     headers: { token: localStorage.getItem('token') },
-//   })
-//     .then((res) => {
-//       dispatch(resultOfGetItemDeviation(res.data.deviation));
-//     });
-// };
+export const getProgressesFromFirebase = () => (dispatch) => {
+  progresses.on('value', (data) => {
+    if (data.val() !== null) {
+      if (data.val().ref === 1137 || data.val().ref === 1130) {
+        dispatch({
+          type: actionType.OPEN_SUCCESS_MSG_IN_ADD_PROGRESS_VALUE,
+          payload: data.val().msg,
+        });
+        dispatch({
+          type: actionType.CLOSE_MSG_IN_ADD_PROGRESS_VALUE,
+        });
+        dispatch({
+          type: actionType.ADD_VALUE_IN_PROGRESS_ITEM,
+          payload: {
+            progressData: data.val().progressData,
+            positionData: data.val().positionData,
+          },
+        });
+      } else if (data.val().ref === 1146) {
+        dispatch({
+          type: actionType.OPEN_SUCCESS_MSG_IN_ADD_PROGRESS_VALUE,
+          payload: data.val().msg,
+        });
+        dispatch({
+          type: actionType.CLOSE_MSG_IN_ADD_PROGRESS_VALUE,
+        });
+        dispatch({
+          type: actionType.UPDATE_VALUE_IN_PROGRESS_ITEM,
+          payload: {
+            progressData: data.val().progressData,
+            positionData: data.val().positionData,
+          },
+        });
+      }
+    }
+  });
+  progresses.remove();
+};
+
+export const getAddItemFromFirebase = () => (dispatch) => {
+  addItemRef.on('value', (data) => {
+    if (data.val() !== null) {
+      if (data.val().ok === true) {
+        dispatch(getItemPropertiesForAddItemLogic(data.val().itemId));
+        dispatch(msgFromAddItemSuccess(data.val().msg));
+        dispatch({
+          type: actionType.CLOSE_ADD_ITEM_SUCCESS_MSG,
+        });
+        dispatch(getItemWithIdAndName());
+      }
+    }
+  });
+  addItemRef.remove();
+};

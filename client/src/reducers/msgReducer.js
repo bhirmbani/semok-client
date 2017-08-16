@@ -340,7 +340,7 @@ const openErrMsgInAddProgressValue = (state, payload) => {
   return newState;
 };
 
-const closeErrMsgInAddProgressValue = (state) => {
+const closeMsgInAddProgressValue = (state) => {
   const newState = {
     ...state,
     addProgress: {
@@ -372,21 +372,21 @@ const openSuccessMsgInAddProgressValue = (state, payload) => {
   return newState;
 };
 
-const closeSuccessMsgInAddProgressValue = (state) => {
-  const newState = {
-    ...state,
-    addProgress: {
-      msg: {
-        context: null,
-        content: null,
-        ok: false,
-        isSuccessMsgShowed: false,
-        isErrMsgShowed: false,
-      },
-    },
-  };
-  return newState;
-};
+// const closeSuccessMsgInAddProgressValue = (state) => {
+//   const newState = {
+//     ...state,
+//     addProgress: {
+//       msg: {
+//         context: null,
+//         content: null,
+//         ok: false,
+//         isSuccessMsgShowed: false,
+//         isErrMsgShowed: false,
+//       },
+//     },
+//   };
+//   return newState;
+// };
 
 const msgReducer = (state = initialState, { type, payload }) => {
   switch (type) {
@@ -447,14 +447,14 @@ const msgReducer = (state = initialState, { type, payload }) => {
     case actionType.OPEN_ERR_MSG_IN_ADD_PROGRESS_VALUE:
       return openErrMsgInAddProgressValue(state, payload);
 
-    case actionType.CLOSE_ERR_MSG_IN_ADD_PROGRESS_VALUE:
-      return closeErrMsgInAddProgressValue(state);
+    // case actionType.CLOSE_ERR_MSG_IN_ADD_PROGRESS_VALUE:
+    //   return closeErrMsgInAddProgressValue(state);
 
     case actionType.OPEN_SUCCESS_MSG_IN_ADD_PROGRESS_VALUE:
       return openSuccessMsgInAddProgressValue(state, payload);
 
-    case actionType.CLOSE_SUCCESS_MSG_IN_ADD_PROGRESS_VALUE:
-      return closeSuccessMsgInAddProgressValue(state);
+    case actionType.CLOSE_MSG_IN_ADD_PROGRESS_VALUE:
+      return closeMsgInAddProgressValue(state);
 
     default:
       return state;

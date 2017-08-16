@@ -1,8 +1,8 @@
 import React, { Component } from 'react';
 import { Container } from 'semantic-ui-react';
 import { BrowserRouter, Route } from 'react-router-dom';
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.min.css'; 
+import Notifications from 'react-notify-toast';
+// import { ToastContainer, toast } from 'react-toastify';
 
 import Navbar from './components/navbar';
 import Sidebar from './components/sidebar';
@@ -22,9 +22,7 @@ class App extends Component {
     return (
       <BrowserRouter>
         <div style={styles.position}>
-          <ToastContainer
-            position="bottom-left"
-          />
+          <Notifications />
           <Navbar />
           <div style={styles.spacer}>
           &nbsp;
