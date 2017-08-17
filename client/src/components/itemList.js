@@ -3,6 +3,7 @@ import { Table, Message, Popup, Button, Form, Select, Dropdown, Icon, Header, In
 import { connect } from 'react-redux';
 import numeral from 'numeral';
 import { notify } from 'react-notify-toast';
+import helpers from '../helpers';
 
 import {
   getItems,
@@ -152,37 +153,6 @@ const processDot = (status) => {
       return (
         <Icon style={processDotStyle(status)} name="circle" />
       );
-  }
-};
-
-const processMonthName = (period) => {
-  switch (period) {
-    case '1':
-      return 'Januari';
-    case '2':
-      return 'Februari';
-    case '3':
-      return 'Maret';
-    case '4':
-      return 'April';
-    case '5':
-      return 'Mei';
-    case '6':
-      return 'Juni';
-    case '7':
-      return 'Juli';
-    case '8':
-      return 'Agustus';
-    case '9':
-      return 'September';
-    case '10':
-      return 'Oktober';
-    case '11':
-      return 'November';
-    case '12':
-      return 'Desember';
-    default:
-      return '';
   }
 };
 
@@ -499,7 +469,7 @@ class ItemList extends Component {
                         trigger={
                           <div style={styles.targetAndProgress}>
                             {<span style={styles.borderBottom}>
-                              {processMonthName(target.period)}
+                              {helpers.processMonthName(target.period)}
                             </span>}
                           </div>}
                         on="click"
@@ -611,7 +581,7 @@ class ItemList extends Component {
                         trigger={
                           <div style={styles.targetAndProgress}>
                             {<span style={styles.borderBottom}>
-                              {processMonthName(progress.period)}
+                              {helpers.processMonthName(progress.period)}
                             </span>}
                           </div>}
                         on="click"
@@ -661,7 +631,7 @@ class ItemList extends Component {
                   {item.Statuses.map(status => (
                     <div style={styles.itemProperties} key={status.id}>
                       <div>
-                        {processMonthName(status.period)}
+                        {helpers.processMonthName(status.period)}
                         {processDot(status.stats)}
                       </div>
                       <div style={styles.inlineParent}>
@@ -678,7 +648,7 @@ class ItemList extends Component {
                   {item.Performances.map(performance => (
                     <div style={styles.itemProperties} key={performance.id}>
                       <div>
-                        {processMonthName(performance.period)}
+                        {helpers.processMonthName(performance.period)}
                       </div>
                       <div style={styles.inlineParent}>
                         <span>
