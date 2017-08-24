@@ -3,6 +3,7 @@ import * as actionType from '../actions/constants';
 
 const initialState = {
   items: null,
+  originalItems: null,
   isFilterByItsMakerAndCategoryTriggered: false,
   itemWithIdAndName: null,
   itemWithTargets: null,
@@ -206,6 +207,13 @@ const updateValueInProgressItem = (state, payload) => {
   return state;
 };
 
+const filterItemResult = (state, payload) => {
+  const newState = {
+    ...state,
+    items: payload,
+  };
+  return newState;
+};
 
 const filterItemByItsMakerAndCategory = (state) => {
   const newState = {
@@ -231,13 +239,45 @@ const getItemWithTargets = (state, payload) => {
   return newState;
 };
 
+const editItemName = (state, payload) => {
+  const itemState = state.items;
+  const pickedItem = itemState[payload.itemIdx];
+  pickedItem.name = payload.data.updatedItem.name;
+  itemState.splice(payload.itemIdx, 1, pickedItem);
+  const newState = {
+    ...state,
+    items: itemState,
+  };
+
+  return newState;
+};
+
+const deleteItem = (state, payload) => {
+  const itemState = state.items;
+  itemState.splice(payload, 1);
+  const newState = {
+    ...state,
+    items: itemState,
+  };
+  return newState;
+};
+
+const getOriginalItems = (state, payload) => {
+  const newState = {
+    ...state,
+    originalItems: payload,
+  };
+  return newState;
+};
+
+
 const itemReducer = (state = initialState, { type, payload }) => {
   switch (type) {
     case actionType.GET_ITEMS_RESULT:
       return getItems(state, payload);
-    case actionType.ADD_ITEM_SUCCESS:
+    // case actionType.ADD_ITEM_SUCCESS:
     //   return addItemSuccess(state, payload);
-    // case actionType.TRIGGER_FILTER_BY_ITS_MAKER_AND_CATEGORY:
+    case actionType.TRIGGER_FILTER_BY_ITS_MAKER_AND_CATEGORY:
       return filterItemByItsMakerAndCategory(state);
     case actionType.TURN_OFF_FILTER_BY_ITS_MAKER_AND_CATEGORY:
       return turnOffFilterByItsMakerAndCategory(state);
@@ -253,6 +293,14 @@ const itemReducer = (state = initialState, { type, payload }) => {
       return addValueInProgressItem(state, payload);
     case actionType.UPDATE_VALUE_IN_PROGRESS_ITEM:
       return updateValueInProgressItem(state, payload);
+    case actionType.EDIT_ITEM_NAME:
+      return editItemName(state, payload);
+    case actionType.DELETE_ITEM_RESULT:
+      return deleteItem(state, payload);
+    case actionType.FILTER_ITEM_RESULT:
+      return filterItemResult(state, payload);
+    case actionType.FETCH_ORIGINAL_ITEMS:
+      return getOriginalItems(state, payload);
     default:
       return state;
   }

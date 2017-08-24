@@ -6,7 +6,7 @@ module.exports = function (sequelize, DataTypes) {
     ItemId: DataTypes.INTEGER,
   });
   Unit.associate = function (models) {
-    Unit.belongsTo(models.Item);
+    Unit.belongsTo(models.Item, { onDelete: 'cascade' });
   };
   return Unit;
 };

@@ -6,8 +6,8 @@ module.exports = function (sequelize, DataTypes) {
     topCategoryId: DataTypes.INTEGER,
   });
   CategoryTop.associate = function (models) {
-    CategoryTop.belongsTo(models.Category, { foreignKey: 'categoryId' });
-    CategoryTop.belongsTo(models.TopCategory, { foreignKey: 'topCategoryId' });
+    CategoryTop.belongsTo(models.Category, { foreignKey: 'categoryId', onDelete: 'cascade' });
+    CategoryTop.belongsTo(models.TopCategory, { foreignKey: 'topCategoryId', onDelete: 'cascade' });
   };
   return CategoryTop;
 };

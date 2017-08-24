@@ -43,6 +43,24 @@ const initialState = {
       isErrMsgShowed: false,
     },
   },
+  editItemName: {
+    msg: {
+      context: null,
+      content: null,
+      ok: null,
+      isSuccessMsgShowed: false,
+      isErrMsgShowed: false,
+    },
+  },
+  deleteItem: {
+    msg: {
+      context: null,
+      content: null,
+      ok: null,
+      isSuccessMsgShowed: false,
+      isErrMsgShowed: false,
+    },
+  },
 };
 
 const openModal = (state) => {
@@ -372,6 +390,86 @@ const openSuccessMsgInAddProgressValue = (state, payload) => {
   return newState;
 };
 
+const msgFromEditItemNameSuccess = (state, payload) => {
+  const newState = {
+    ...state,
+    editItemName: {
+      msg: {
+        context: null,
+        content: payload,
+        ok: false,
+        isSuccessMsgShowed: false,
+        isErrMsgShowed: true,
+      },
+    },
+  };
+  return newState;
+};
+
+const msgFromEditItemNameErr = (state, payload) => {
+  const newState = {
+    ...state,
+    editItemName: {
+      msg: {
+        context: null,
+        content: payload,
+        ok: true,
+        isSuccessMsgShowed: true,
+        isErrMsgShowed: false,
+      },
+    },
+  };
+  return newState;
+};
+
+const removeMsgFromEditItemName = (state) => {
+  const newState = {
+    ...state,
+    editItemName: {
+      msg: {
+        context: null,
+        content: null,
+        ok: null,
+        isSuccessMsgShowed: false,
+        isErrMsgShowed: false,
+      },
+    },
+  };
+  return newState;
+};
+
+const msgFromDeleteItemSuccess = (state, payload) => {
+  const newState = {
+    ...state,
+    deleteItem: {
+      msg: {
+        context: null,
+        content: payload,
+        ok: null,
+        isSuccessMsgShowed: true,
+        isErrMsgShowed: false,
+      },
+    },
+  };
+  return newState;
+};
+
+const removeMsgFromDeleteItem = (state) => {
+  const newState = {
+    ...state,
+    deleteItem: {
+      msg: {
+        context: null,
+        content: null,
+        ok: null,
+        isSuccessMsgShowed: false,
+        isErrMsgShowed: false,
+      },
+    },
+  };
+  return newState;
+};
+
 // const closeSuccessMsgInAddProgressValue = (state) => {
 //   const newState = {
 //     ...state,
@@ -455,6 +553,21 @@ const msgReducer = (state = initialState, { type, payload }) => {
 
     case actionType.CLOSE_MSG_IN_ADD_PROGRESS_VALUE:
       return closeMsgInAddProgressValue(state);
+
+    case actionType.MSG_FROM_EDIT_ITEM_NAME_SUCCESS:
+      return msgFromEditItemNameSuccess(state, payload);
+
+    case actionType.MSG_FROM_EDIT_ITEM_NAME_ERR:
+      return msgFromEditItemNameErr(state, payload);
+
+    case actionType.REMOVE_MSG_FROM_EDIT_ITEM_NAME:
+      return removeMsgFromEditItemName(state);
+
+    case actionType.MSG_FROM_DELETE_ITEM_SUCCESS:
+      return msgFromDeleteItemSuccess(state, payload);
+
+    case actionType.REMOVE_MSG_FROM_DELETE_ITEM:
+      return removeMsgFromDeleteItem(state, payload);
 
     default:
       return state;

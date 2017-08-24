@@ -7,7 +7,7 @@ module.exports = function (sequelize, DataTypes) {
     stretch: DataTypes.DECIMAL,
   });
   Target.associate = function (models) {
-    Target.belongsToMany(models.Item, { through: 'TargetItem', foreignKey: 'targetId' });
+    Target.belongsToMany(models.Item, { through: 'TargetItem', foreignKey: 'targetId', onDelete: 'cascade' });
   };
   return Target;
 };

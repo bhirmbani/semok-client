@@ -10,7 +10,7 @@ module.exports = function (sequelize, DataTypes) {
     },
   });
   Status.associate = function (models) {
-    Status.belongsToMany(models.Item, { through: 'StatusItem', foreignKey: 'statusId' });
+    Status.belongsToMany(models.Item, { through: 'StatusItem', foreignKey: 'statusId', onDelete: 'cascade' });
   };
   return Status;
 };

@@ -4,81 +4,15 @@ import { connect } from 'react-redux';
 import { toast } from 'react-toastify';
 
 import helpers from '../helpers';
+import { itemTableStyles as styles } from '../helpers/styles';
 
 import {
   getItems,
   getTargetsFromFirebase,
   getProgressesFromFirebase,
   getAddItemFromFirebase,
+  getEditItemFromFirebase,
 } from '../actions';
-
-const styles = {
-  centerPos: {
-    textAlign: 'center',
-  },
-  paddingCell: {
-    padding: 'inherit',
-  },
-  itemName: {
-    cursor: 'pointer',
-    fontSize: '1.2em',
-    borderBottomStyle: 'dashed',
-    borderBottomWidth: 'thin',
-  },
-  itemCat: {
-    cursor: 'pointer',
-  },
-  filterDropdown: {
-    fontSize: '1.5em',
-  },
-  targetAndProgress: {
-    marginTop: 20,
-    marginRight: 20,
-    marginLeft: 20,
-  },
-  itemProperties: {
-    margin: 10,
-  },
-  borderBottom: {
-    borderBottomStyle: 'dashed',
-    borderBottomWidth: 'thin',
-    cursor: 'pointer',
-  },
-  targetTable: {
-    display: 'inline-flex',
-  },
-  inlineParent: {
-    fontSize: '0.7em',
-    // backgroundColor: 'blue',
-    display: 'inline',
-  },
-  base: {
-    // color: 'white',
-    borderBottomStyle: 'dashed',
-    borderBottomWidth: 'thin',
-    borderBottomColor: '#58E481',
-  },
-  stretch: {
-    // color: 'white',
-    borderBottomStyle: 'dashed',
-    borderBottomWidth: 'thin',
-    borderBottomColor: '#FFD480',
-  },
-  successIcon: {
-    fontSize: '0.70em',
-    padding: '0.6em',
-    color: '#58E481',
-  },
-  starIcon: {
-    fontSize: '0.70em',
-    padding: '0.6em',
-    color: '#FFD480',
-  },
-  titleIcon: {
-    fontSize: '0.90em',
-    padding: '0.6em',
-  },
-};
 
 const processDot = (status) => {
   let style = null;
@@ -137,12 +71,14 @@ const processDot = (status) => {
 };
 
 class Monitoring extends Component {
-
   componentDidMount() {
-    this.props.getItems();
+    if (!this.props.itemReducer.items) {
+      this.props.getItems();
+    }
     this.props.getTargetsFromFirebase();
     this.props.getProgressesFromFirebase();
     this.props.getAddItemFromFirebase();
+    this.props.getEditItemFromFirebase();
   }
 
   componentDidUpdate() {
@@ -156,17 +92,20 @@ class Monitoring extends Component {
       toast.error(this.props.msgReducer.addProgress.msg.content);
     } else if (this.props.msgReducer.addItem.msg.isSuccessMsgShowed) {
       toast.success(this.props.msgReducer.addItem.msg.content);
+    } else if (this.props.msgReducer.editItemName.msg.isSuccessMsgShowed) {
+      toast.success(this.props.msgReducer.editItemName.msg.content);
     }
   }
 
   render() {
     return (
-      <Segment>
-        {(this.props.itemReducer.items) ? <Table basic="very" compact="very">
+      <div>
+        {(this.props.itemReducer.items) ? <Table textAlign="center" celled striped compact="very" padded="very">
           <Table.Header>
             <Table.Row>
               <Table.HeaderCell>Name</Table.HeaderCell>
               <Table.HeaderCell>Target</Table.HeaderCell>
+              <Table.HeaderCell>Progress <Icon name="line chart" style={styles.titleIcon} /> </Table.HeaderCell>
               <Table.HeaderCell>Status</Table.HeaderCell>
             </Table.Row>
           </Table.Header>
@@ -183,10 +122,22 @@ class Monitoring extends Component {
                         {helpers.processMonthName(target.period)}
                         <span>
                           <Icon name="circle" style={styles.successIcon} />
-                          {target.base ? target.base : 0}
+                          {target.base ? ` ${target.base}` : ` ${0}`}
                         </span>
                         <span><Icon name="star" style={styles.starIcon} />
-                          {target.stretch ? target.stretch : 0}
+                          {target.stretch ? ` ${target.stretch}` : ` ${0}`}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </Table.Cell>
+                <Table.Cell>
+                  {item.Progresses.map((progress, progressIdx) => (
+                    <div key={progress.id}>
+                      <div style={styles.inlineParent}>
+                        {helpers.processMonthName(progress.period)}
+                        <span>
+                          {` ${progress.value}`}
                         </span>
                       </div>
                     </div>
@@ -208,7 +159,7 @@ class Monitoring extends Component {
             ))}
           </Table.Body>
         </Table> : <Loader active inline="centered" />}
-      </Segment>
+      </div>
     );
   }
 }
@@ -230,6 +181,9 @@ const mapDispatchToProps = dispatch => ({
   },
   getAddItemFromFirebase: () => {
     dispatch(getAddItemFromFirebase());
+  },
+  getEditItemFromFirebase: () => {
+    dispatch(getEditItemFromFirebase());
   },
 });
 

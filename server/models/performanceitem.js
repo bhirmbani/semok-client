@@ -6,8 +6,8 @@ module.exports = function (sequelize, DataTypes) {
     itemId: DataTypes.INTEGER,
   });
   PerformanceItem.associate = function (models) {
-    PerformanceItem.belongsTo(models.Item, { foreignKey: 'itemId' });
-    PerformanceItem.belongsTo(models.Performance, { foreignKey: 'performanceId' });
+    PerformanceItem.belongsTo(models.Item, { foreignKey: 'itemId', onDelete: 'cascade' });
+    PerformanceItem.belongsTo(models.Performance, { foreignKey: 'performanceId', onDelete: 'cascade' });
   };
   return PerformanceItem;
 };

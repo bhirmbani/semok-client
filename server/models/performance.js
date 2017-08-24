@@ -6,7 +6,7 @@ module.exports = function (sequelize, DataTypes) {
     value: DataTypes.FLOAT,
   });
   Performance.associate = function (models) {
-    Performance.belongsToMany(models.Item, { through: 'PerformanceItem', foreignKey: 'performanceId' });
+    Performance.belongsToMany(models.Item, { through: 'PerformanceItem', foreignKey: 'performanceId', onDelete: 'cascade' });
   };
   return Performance;
 };

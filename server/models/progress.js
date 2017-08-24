@@ -9,7 +9,7 @@ module.exports = function (sequelize, DataTypes) {
     },
   });
   Progress.associate = function (models) {
-    Progress.belongsToMany(models.Item, { through: 'ProgressItem', foreignKey: 'progressId' });
+    Progress.belongsToMany(models.Item, { through: 'ProgressItem', foreignKey: 'progressId', onDelete: 'cascade' });
   };
   return Progress;
 };

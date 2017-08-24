@@ -10,8 +10,8 @@ module.exports = function (sequelize, DataTypes) {
     WorkerId: DataTypes.INTEGER,
   });
   Bobot.associate = function (models) {
-    Bobot.belongsTo(models.Item);
-    Bobot.belongsTo(models.Worker);
+    Bobot.belongsTo(models.Item, { onDelete: 'cascade' });
+    Bobot.belongsTo(models.Worker, { onDelete: 'cascade' });
   };
   return Bobot;
 };

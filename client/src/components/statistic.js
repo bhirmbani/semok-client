@@ -2,6 +2,7 @@ import React, { Component } from 'react';
 import { Card, Table, Header, Dropdown, Grid } from 'semantic-ui-react';
 import { connect } from 'react-redux';
 import numeral from 'numeral';
+import { statisticDropdownStyles as styles } from '../helpers/styles';
 
 import {
   getItemWithIdAndName,
@@ -10,17 +11,6 @@ import {
   getProgressesFromFirebase,
   getItems,
 } from '../actions';
-
-const styles = {
-  searchItemDropdown: {
-    fontSize: '1.5em',
-    // marginTop: 5,
-  },
-  searchItemInput: {
-    marginTop: 10,
-    marginBottom: 10,
-  },
-};
 
 class Statistic extends Component {
   constructor(props) {

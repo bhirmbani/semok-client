@@ -6,7 +6,7 @@ module.exports = function (sequelize, DataTypes) {
   });
   Category.associate = function (models) {
     Category.hasMany(models.Item);
-    Category.belongsToMany(models.TopCategory, { through: 'CategoryTop', foreignKey: 'categoryId' });
+    Category.belongsToMany(models.TopCategory, { through: 'CategoryTop', foreignKey: 'categoryId', onDelete: 'cascade' });
   };
   return Category;
 };

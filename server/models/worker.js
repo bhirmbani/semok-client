@@ -10,10 +10,10 @@ module.exports = function (sequelize, DataTypes) {
     password: DataTypes.STRING,
   });
   Worker.associate = function (models) {
-    Worker.belongsToMany(models.Item, { through: 'WorkerItem', foreignKey: 'workerId' });
-    Worker.belongsToMany(models.TopCategory, { through: 'BobotSum', foreignKey: 'workerId' });
-    Worker.hasMany(models.Bobot);
-    Worker.hasMany(models.Info);
+    Worker.belongsToMany(models.Item, { through: 'WorkerItem', foreignKey: 'workerId', onDelete: 'cascade' });
+    Worker.belongsToMany(models.TopCategory, { through: 'BobotSum', foreignKey: 'workerId', onDelete: 'cascade' });
+    Worker.hasMany(models.Bobot, { onDelete: 'cascade' });
+    Worker.hasMany(models.Info, { onDelete: 'cascade' });
   };
   return Worker;
 };

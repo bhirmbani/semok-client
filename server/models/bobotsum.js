@@ -7,8 +7,8 @@ module.exports = function (sequelize, DataTypes) {
     topCategoryId: DataTypes.INTEGER,
   });
   BobotSum.associate = function (models) {
-    BobotSum.belongsTo(models.TopCategory, { foreignKey: 'topCategoryId' });
-    BobotSum.belongsTo(models.Worker, { foreignKey: 'workerId' });
+    BobotSum.belongsTo(models.TopCategory, { foreignKey: 'topCategoryId', onDelete: 'cascade' });
+    BobotSum.belongsTo(models.Worker, { foreignKey: 'workerId', onDelete: 'cascade' });
   };
   return BobotSum;
 };

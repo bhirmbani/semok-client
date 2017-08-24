@@ -14,18 +14,24 @@ firebase.initializeApp(config);
 const targets = firebase.database().ref('target');
 const progresses = firebase.database().ref('progress');
 const addItemRef = firebase.database().ref('item');
+const editItemRef = firebase.database().ref('edit');
 
 export const getItemsSuccess = items => ({
   type: actionType.GET_ITEMS_RESULT,
   payload: items,
 });
 
-export const getItems = () => (dispatch) => {
+export const getItems = () => (dispatch, getState) => {
   axios.get('http://localhost:3000/api/item', {
     headers: { token: localStorage.getItem('token') },
   })
     .then((res) => {
       dispatch(getItemsSuccess(res.data.items));
+      const originalItems = getState();
+      dispatch({
+        type: actionType.FETCH_ORIGINAL_ITEMS,
+        payload: originalItems.itemReducer.items,
+      });
     })
     .catch((err) => {
       console.log(err);
@@ -288,4 +294,70 @@ export const getAddItemFromFirebase = () => (dispatch) => {
     }
   });
   addItemRef.remove();
+};
+
+export const getEditItemFromFirebase = () => (dispatch) => {
+  editItemRef.on('value', (data) => {
+    if (data.val() !== null) {
+      if (data.val().ok) {
+        dispatch({
+          type: actionType.MSG_FROM_EDIT_ITEM_NAME_SUCCESS,
+          payload: data.val().msg,
+        });
+        dispatch({
+          type: actionType.EDIT_ITEM_NAME,
+          payload: { data: data.val().data, itemIdx: data.val().itemIdx },
+        });
+        dispatch({
+          type: actionType.REMOVE_MSG_FROM_EDIT_ITEM_NAME,
+        });
+      }
+    }
+  });
+  editItemRef.remove();
+};
+
+export const editItemName = (itemId, name, itemIdx) => (dispatch) => {
+  axios.post(`http://localhost:3000/api/item/edit/${itemId}`, { name }, {
+    headers: { token: localStorage.getItem('token') },
+  })
+    .then((res) => {
+      if (res.data.ok) {
+        editItemRef.set({
+          data: res.data,
+          msg: res.data.msg,
+          itemIdx,
+          ok: res.data.ok,
+        });
+      } else if (!res.data.ok) {
+        dispatch({
+          type: actionType.MSG_FROM_EDIT_ITEM_NAME_ERR,
+          payload: res.data.msg,
+        });
+        dispatch({
+          type: actionType.REMOVE_MSG_FROM_EDIT_ITEM_NAME,
+        });
+      }
+    });
+};
+
+export const deleteItem = (itemId, itemIdx) => (dispatch) => {
+  axios.delete(`http://localhost:3000/api/item/${itemId}`, {
+    headers: { token: localStorage.getItem('token') },
+  })
+    .then((res) => {
+      if (res.data.ok) {
+        dispatch({
+          type: actionType.DELETE_ITEM_RESULT,
+          payload: itemIdx,
+        });
+        dispatch({
+          type: actionType.MSG_FROM_DELETE_ITEM_SUCCESS,
+          payload: res.data.msg,
+        });
+        dispatch({
+          type: actionType.REMOVE_MSG_FROM_DELETE_ITEM,
+        });
+      }
+    });
 };

@@ -65,7 +65,7 @@ methods.create = (req, res, next) => {
       models.Item.findOne({
         where: { name },
       })
-      .then((foundItem) =>  {
+      .then((foundItem) => {
         if (!foundItem) {
           models.Item.findAll({
             attributes: [['name', 'name']],
@@ -218,6 +218,10 @@ methods.gets = (req, res, next) => {
         },
         {
           model: models.Worker,
+          attributes: [['name', 'name'], ['id', 'id'], ['role', 'role']],
+          include: [{
+            model: models.Bobot,
+          }],
         },
         {
           model: models.Info,
@@ -1138,122 +1142,130 @@ methods.addNewProgress = (req, res, next) => {
       where: {
         id: req.body.itemId,
       },
+      include: [{
+        model: models.Worker,
+      }],
     })
     .then((item) => {
       if (item === null) {
         res.json({ msg: `tidak ditemukan item dengan id ${req.body.itemId}` });
       } else if (req.body.itemId && req.body.period && req.body.value && item !== null) {
-        item.getTargets()
-        .then((targetRef) => {
-          const targets = targetRef.map(target => target);
-          const filteredTargets = targets.filter(target => target.period === req.body.period);
-          if (filteredTargets.length < 1) {
-            res.json({ ref: 1038, msg: `tidak ada period ${req.body.period} untuk item dengan id ${req.body.itemId}`, ok: false });
-          } else {
-            item.getProgresses()
-            .then((progressRef) => {
-              const filteredProgress = progressRef.filter(
-                progress => progress.period === req.body.period);
-              if (filteredTargets[0].base === null || filteredTargets[0].base === '0') {
-                res.json({ ref: 1157, msg: `tidak bisa update progress. pastikan nilai base bulan ${utility.processMonthName(filteredProgress[0].period)} pada item ${item.name} diisi dulu`, ok: false });
-              } else if (filteredTargets[0].stretch === null || filteredTargets[0].stretch === '0') {
-                res.json({ ref: 1159, msg: `tidak bisa update progress. pastikan nilai stretch bulan ${utility.processMonthName(filteredProgress[0].period)} pada item ${item.name} diisi dulu`, ok: false });
-              } else {
-                filteredProgress[0].update({
-                  value: req.body.value,
-                })
-                .then((progressResult) => {
-                  // update status di sini
-                  let result = null;
-                  if (filteredTargets[0].base === null || filteredTargets[0].base === '0') {
-                    res.json({ ref: 1168, msg: `tidak bisa update progress. pastikan nilai base bulan ${utility.processMonthName(filteredProgress[0].period)} pada item ${item.name} diisi dulu`, ok: false });
-                  } else if (filteredTargets[0].stretch === null || filteredTargets[0].stretch === '0') {
-                    res.json({ ref: 1170, msg: `tidak bisa update progress. pastikan nilai stretch bulan ${utility.processMonthName(filteredProgress[0].period)} pada item ${item.name} diisi dulu`, ok: false });
-                  } else {
-                    const progress = Number.parseInt(progressResult.value, 10);
-                    const base = Number.parseInt(filteredTargets[0].base, 10);
-                    const stretch = Number.parseInt(filteredTargets[0].stretch, 10);
-                    result = processStatsValue(progress, base, stretch);
-                  }
-                  // create dulu kalau belum ada, kalau ada update
-                  item.getStatuses()
-                  .then((val) => {
-                    item.getPerformances()
-                    .then((perf) => {
-                      item.getBobots()
-                      .then((bots) => {
-                        const filteredBobots = bots.filter(bobot => bobot.WorkerId === decoded.id);
-                        const statuses = val.map(each => each);
-                        const filteredStatuses =
-                        statuses.filter(each => each.period === req.body.period);
-                        if (filteredStatuses.length < 1) {
-                          models.Status.create({
-                            period: req.body.period,
-                            value: result.value,
-                            stats: result.stats,
-                          })
-                          .then((statusResult) => {
-                            models.StatusItem.create({
-                              statusId: statusResult.id,
-                              itemId: item.id,
+        const filteredWorker = item.Workers.filter(each => decoded.name === each.name);
+        if (filteredWorker.length < 1) {
+          res.json({ msg: `${decoded.role} ${decoded.name} tidak punya akses terhadap item ini`, ok: false });
+        } else {
+          item.getTargets()
+          .then((targetRef) => {
+            const targets = targetRef.map(target => target);
+            const filteredTargets = targets.filter(target => target.period === req.body.period);
+            if (filteredTargets.length < 1) {
+              res.json({ ref: 1038, msg: `tidak ada period ${req.body.period} untuk item dengan id ${req.body.itemId}`, ok: false });
+            } else {
+              item.getProgresses()
+              .then((progressRef) => {
+                const filteredProgress = progressRef.filter(
+                  progress => progress.period === req.body.period);
+                if (filteredTargets[0].base === null || filteredTargets[0].base === '0') {
+                  res.json({ ref: 1157, msg: `tidak bisa update progress. pastikan nilai base bulan ${utility.processMonthName(filteredProgress[0].period)} pada item ${item.name} diisi dulu`, ok: false });
+                } else if (filteredTargets[0].stretch === null || filteredTargets[0].stretch === '0') {
+                  res.json({ ref: 1159, msg: `tidak bisa update progress. pastikan nilai stretch bulan ${utility.processMonthName(filteredProgress[0].period)} pada item ${item.name} diisi dulu`, ok: false });
+                } else {
+                  filteredProgress[0].update({
+                    value: req.body.value,
+                  })
+                  .then((progressResult) => {
+                    // update status di sini
+                    let result = null;
+                    if (filteredTargets[0].base === null || filteredTargets[0].base === '0') {
+                      res.json({ ref: 1168, msg: `tidak bisa update progress. pastikan nilai base bulan ${utility.processMonthName(filteredProgress[0].period)} pada item ${item.name} diisi dulu`, ok: false });
+                    } else if (filteredTargets[0].stretch === null || filteredTargets[0].stretch === '0') {
+                      res.json({ ref: 1170, msg: `tidak bisa update progress. pastikan nilai stretch bulan ${utility.processMonthName(filteredProgress[0].period)} pada item ${item.name} diisi dulu`, ok: false });
+                    } else {
+                      const progress = Number.parseInt(progressResult.value, 10);
+                      const base = Number.parseInt(filteredTargets[0].base, 10);
+                      const stretch = Number.parseInt(filteredTargets[0].stretch, 10);
+                      result = processStatsValue(progress, base, stretch);
+                    }
+                    // create dulu kalau belum ada, kalau ada update
+                    item.getStatuses()
+                    .then((val) => {
+                      item.getPerformances()
+                      .then((perf) => {
+                        item.getBobots()
+                        .then((bots) => {
+                          const filteredBobots = bots.filter(bobot => bobot.WorkerId === decoded.id);
+                          const statuses = val.map(each => each);
+                          const filteredStatuses =
+                          statuses.filter(each => each.period === req.body.period);
+                          if (filteredStatuses.length < 1) {
+                            models.Status.create({
+                              period: req.body.period,
+                              value: result.value,
+                              stats: result.stats,
                             })
-                            .then((statusItemRef) => {
-                              // kalau belum ada performance, bikin performance baru
-                              if (perf.length < 1) {
-                                const perfValue = (filteredBobots[0].value / 100) * (statusResult.value / 100) * 100;
-                                models.Performance.create({
-                                  period: req.body.period,
-                                  value: perfValue,
-                                })
-                                .then((performanceResult) => {
-                                  models.PerformanceItem.create({
-                                    performanceId: performanceResult.id,
-                                    itemId: item.id,
+                            .then((statusResult) => {
+                              models.StatusItem.create({
+                                statusId: statusResult.id,
+                                itemId: item.id,
+                              })
+                              .then((statusItemRef) => {
+                                // kalau belum ada performance, bikin performance baru
+                                if (perf.length < 1) {
+                                  const perfValue = (filteredBobots[0].value / 100) * (statusResult.value / 100) * 100;
+                                  models.Performance.create({
+                                    period: req.body.period,
+                                    value: perfValue,
+                                  })
+                                  .then((performanceResult) => {
+                                    models.PerformanceItem.create({
+                                      performanceId: performanceResult.id,
+                                      itemId: item.id,
+                                    });
+                                    res.json({ ref: 1137, msg: `item ${item.name} berhasil diperbarui nilai progressnya untuk bulan ${utility.processMonthName(filteredProgress[0].period)}`, filteredProgress, progressResult, filteredTargets, statusItemRef, statusResult, performanceResult, ok: true });
                                   });
-                                  res.json({ ref: 1137, msg: `item ${item.name} berhasil diperbarui nilai progressnya untuk bulan ${utility.processMonthName(filteredProgress[0].period)}`, filteredProgress, progressResult, filteredTargets, statusItemRef, statusResult, performanceResult, ok: true });
-                                });
-                              } else {
-                                const perfValue = (filteredBobots[0].value / 100) * (statusResult.value / 100) * 100;
-                                models.Performance.create({
-                                  period: req.body.period,
-                                  value: perfValue,
-                                })
-                                .then((performanceResult) => {
-                                  models.PerformanceItem.create({
-                                    performanceId: performanceResult.id,
-                                    itemId: item.id,
+                                } else {
+                                  const perfValue = (filteredBobots[0].value / 100) * (statusResult.value / 100) * 100;
+                                  models.Performance.create({
+                                    period: req.body.period,
+                                    value: perfValue,
+                                  })
+                                  .then((performanceResult) => {
+                                    models.PerformanceItem.create({
+                                      performanceId: performanceResult.id,
+                                      itemId: item.id,
+                                    });
+                                    res.json({ ref: 1130, msg: `item ${item.name} berhasil diperbarui nilai progressnya untuk bulan ${utility.processMonthName(filteredProgress[0].period)}`, filteredProgress, progressResult, filteredTargets, statusItemRef, statusResult, performanceResult, ok: true });
                                   });
-                                  res.json({ ref: 1130, msg: `item ${item.name} berhasil diperbarui nilai progressnya untuk bulan ${utility.processMonthName(filteredProgress[0].period)}`, filteredProgress, progressResult, filteredTargets, statusItemRef, statusResult, performanceResult, ok: true });
-                                });
-                                // res.json({ ref: 1157, msg: 'update performance di sini', perf });
-                              }
+                                  // res.json({ ref: 1157, msg: 'update performance di sini', perf });
+                                }
+                              });
                             });
-                          });
-                        } else {
-                          filteredStatuses[0].update({
-                            value: result.value,
-                            stats: result.stats,
-                          })
-                          .then((statusResult) => {
-                            const perfValue =
-                            (filteredBobots[0].value / 100) * (statusResult.value / 100) * 100;
-                            const filter = perf.filter(each => each.period === req.body.period);
-                            filter[0].update({
-                              value: perfValue,
+                          } else {
+                            filteredStatuses[0].update({
+                              value: result.value,
+                              stats: result.stats,
                             })
-                            .then((performanceResult) => {
-                              res.json({ filter, ref: 1146, msg: `item ${item.name} berhasil diperbarui nilai progressnya untuk bulan ${utility.processMonthName(filteredProgress[0].period)}`, filteredProgress, progressResult, filteredTargets, statusResult, performanceResult, ok: true });
+                            .then((statusResult) => {
+                              const perfValue =
+                              (filteredBobots[0].value / 100) * (statusResult.value / 100) * 100;
+                              const filter = perf.filter(each => each.period === req.body.period);
+                              filter[0].update({
+                                value: perfValue,
+                              })
+                              .then((performanceResult) => {
+                                res.json({ filteredBobots, filter, ref: 1146, msg: `item ${item.name} berhasil diperbarui nilai progressnya untuk bulan ${utility.processMonthName(filteredProgress[0].period)}`, filteredProgress, progressResult, filteredTargets, statusResult, performanceResult, ok: true });
+                              });
                             });
-                          });
-                        }
+                          }
+                        });
                       });
                     });
                   });
-                });
-              }
-            });
-          }
-        });
+                }
+              });
+            }
+          });
+        }
       } else {
         res.json({ msg: 'masukan dulu nilai progress', ok: false });
       }
@@ -1332,6 +1344,211 @@ methods.getItemDeviationInCertainPeriod = (req, res, next) => {
         res.json({ ok: false, msg: `tidak ada deviation untuk item dengan id ${itemId} dan period ${period}` });
       }
       res.json({ ok: true, deviation });
+    });
+  }
+};
+
+methods.editItemName = (req, res, next) => {
+  const itemId = req.params.itemId;
+  const name = req.body.name;
+  if (!req.headers.token) {
+    res.json({ msg: 'butuh jwt token untuk mendapatkan deviation item ini', ok: false });
+  } else if (!name) {
+    res.json({ msg: 'input nama tidak boleh kosong', ok: false });
+  } else {
+    models.Item.findOne({
+      where: {
+        id: itemId,
+      },
+    })
+    .then((item) => {
+      if (!item) {
+        res.json({ msg: 'item tidak ditemukan', ok: false });
+      } else {
+        models.Item.findOne({
+          where: {
+            name: {
+              $iLike: name,
+            },
+          },
+        })
+        .then((itemWithName) => {
+          const before = item.name;
+          if (!itemWithName) {
+            item.update({
+              name,
+            })
+            .then((updatedItem) => {
+              res.json({ before, updatedItem, ok: true, msg: `berhasil mengubah nama item ${before} menjadi ${updatedItem.name}` });
+            });
+          } else {
+            res.json({ msg: `sudah ada item dengan nama ${itemWithName.name}`, ok: false });
+          }
+        });
+      }
+    });
+  }
+};
+
+methods.deleteItem = (req, res, next) => {
+  const itemId = req.params.itemId;
+  const decoded = helper.decode(req.headers.token);
+  if (!req.headers.token) {
+    res.json({ msg: 'butuh jwt token untuk mendapatkan deviation item ini', ok: false });
+  } else {
+    models.Item.findOne({
+      include: [
+        {
+          model: models.Bobot,
+        },
+        {
+          model: models.Info,
+        },
+        {
+          model: models.Unit,
+        },
+        {
+          model: models.Worker,
+        },
+        {
+          model: models.Performance,
+        },
+        {
+          model: models.Progress,
+        },
+        {
+          model: models.Target,
+        },
+        {
+          model: models.Status,
+        },
+      ],
+      where: {
+        id: itemId,
+      },
+    })
+    .then((item) => {
+      models.Bobot.findOne({
+        where: {
+          ItemId: itemId,
+          WorkerId: decoded.id,
+        },
+      })
+      .then((bobot) => {
+        models.Info.findOne({
+          where: {
+            ItemId: itemId,
+            WorkerId: decoded.id,
+          },
+        })
+        .then((info) => {
+          models.WorkerItem.findOne({
+            where: {
+              itemId,
+              workerId: decoded.id,
+            },
+          })
+          .then((workerItem) => {
+            models.TargetItem.findAll({
+              where: {
+                itemId,
+              },
+            })
+            .then((targetItem) => {
+              models.PerformanceItem.findAll({
+                where: {
+                  itemId,
+                },
+              })
+              .then((performanceItem) => {
+                models.ProgressItem.findAll({
+                  where: {
+                    itemId,
+                  },
+                })
+                .then((progressItem) => {
+                  models.StatusItem.findAll({
+                    where: {
+                      itemId,
+                    },
+                  })
+                  .then((statusItem) => {
+                    if (performanceItem.length > 0 && statusItem.length > 0) {
+                      item.getPerformances()
+                      .then((performances) => {
+                        item.getProgresses()
+                        .then((progresses) => {
+                          item.getStatuses()
+                          .then((statuses) => {
+                            item.getTargets()
+                            .then((targets) => {
+                              targets.forEach((each) => {
+                                each.destroy();
+                              });
+                              performances.forEach((each) => {
+                                each.destroy();
+                              });
+                              progresses.forEach((each) => {
+                                each.destroy();
+                              });
+                              statuses.forEach((each) => {
+                                each.destroy();
+                              });
+                              item.Units[0].destroy();
+                              bobot.destroy();
+                              info.destroy();
+                              workerItem.destroy();
+                              targetItem.forEach((each) => {
+                                each.destroy();
+                              });
+                              performanceItem.forEach((each) => {
+                                each.destroy();
+                              });
+                              progressItem.forEach((each) => {
+                                each.destroy();
+                              });
+                              statusItem.forEach((each) => {
+                                each.destroy();
+                              });
+                              item.destroy();
+                              res.json({ ref: 1506, msg: `item ${item.name} berhasil dihapus`, ok: true });
+                            });
+                          });
+                        });
+                      });
+                    } else {
+                      item.getTargets()
+                      .then((targets) => {
+                        item.getProgresses()
+                        .then((progresses) => {
+                          progresses.forEach((each) => {
+                            each.destroy();
+                          });
+                          targets.forEach((each) => {
+                            each.destroy();
+                          });
+                          item.Units[0].destroy();
+                          bobot.destroy();
+                          info.destroy();
+                          workerItem.destroy();
+                          targetItem.forEach((each) => {
+                            each.destroy();
+                          });
+                          progressItem.forEach((each) => {
+                            each.destroy();
+                          });
+                          item.destroy();
+                          res.json({ ref: 1531, msg: `item ${item.name} berhasil dihapus`, ok: true });
+                        });
+                      });
+                    }
+                  });
+                });
+              });
+            });
+          });
+        });
+      });
     });
   }
 };

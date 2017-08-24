@@ -8,8 +8,8 @@ module.exports = function (sequelize, DataTypes) {
     WorkerId: DataTypes.INTEGER,
   });
   Info.associate = function (models) {
-    Info.belongsTo(models.Item);
-    Info.belongsTo(models.Worker);
+    Info.belongsTo(models.Item, { onDelete: 'cascade' });
+    Info.belongsTo(models.Worker, { onDelete: 'cascade' });
   };
   return Info;
 };
