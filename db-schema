@@ -127,7 +127,7 @@
 <part>id</part>
 </key>
 </table>
-<table x="772" y="247" name="Infos">
+<table x="775" y="274" name="Infos">
 <row name="id" null="1" autoincrement="1">
 <datatype>INTEGER</datatype>
 <default>NULL</default></row>
@@ -149,7 +149,7 @@
 <part>id</part>
 </key>
 </table>
-<table x="933" y="352" name="Notifications">
+<table x="1405" y="35" name="Notifications">
 <row name="id" null="1" autoincrement="1">
 <datatype>INTEGER</datatype>
 <default>NULL</default></row>
@@ -268,7 +268,7 @@
 <part>id</part>
 </key>
 </table>
-<table x="42" y="505" name="Performances">
+<table x="260" y="626" name="Performances">
 <row name="id" null="1" autoincrement="1">
 <datatype>INTEGER</datatype>
 <default>NULL</default></row>
@@ -278,11 +278,17 @@
 <row name="value" null="1" autoincrement="0">
 <datatype>FLOAT</datatype>
 <default>NULL</default></row>
+<row name="itemId" null="1" autoincrement="0">
+<datatype>INTEGER</datatype>
+<default>NULL</default></row>
+<row name="workerId" null="1" autoincrement="0">
+<datatype>INTEGER</datatype>
+<default>NULL</default></row>
 <key type="PRIMARY" name="">
 <part>id</part>
 </key>
 </table>
-<table x="274" y="506" name="PerformanceItems">
+<table x="263" y="470" name="PerformanceItems">
 <row name="id" null="1" autoincrement="1">
 <datatype>INTEGER</datatype>
 <default>NULL</default></row>
@@ -340,6 +346,30 @@
 <datatype>INTEGER</datatype>
 <default>NULL</default><relation table="TopCategories" row="id" />
 </row>
+<key type="PRIMARY" name="">
+<part>id</part>
+</key>
+</table>
+<table x="635" y="657" name="performanceWorkers">
+<row name="id" null="1" autoincrement="1">
+<datatype>INTEGER</datatype>
+<default>NULL</default></row>
+<row name="performanceId" null="1" autoincrement="0">
+<datatype>INTEGER</datatype>
+<default>NULL</default><relation table="Performances" row="id" />
+</row>
+<row name="workerId" null="1" autoincrement="0">
+<datatype>INTEGER</datatype>
+<default>NULL</default><relation table="Workers" row="id" />
+</row>
+<key type="PRIMARY" name="">
+<part>id</part>
+</key>
+</table>
+<table x="1408" y="143" name="Timelines">
+<row name="id" null="1" autoincrement="1">
+<datatype>INTEGER</datatype>
+<default>NULL</default></row>
 <key type="PRIMARY" name="">
 <part>id</part>
 </key>

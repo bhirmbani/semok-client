@@ -6,6 +6,7 @@ import { Route, Link } from 'react-router-dom';
 import MsgAtTheBottomOfNavbar from './msgAtTheBottomOfNavbar';
 import Statistic from './statistic';
 import Monitoring from './monitoring';
+import ItemSaya from './itemSaya';
 import decodeHelper from '../helpers';
 
 const userData = decodeHelper.decode(localStorage.getItem('token'));
@@ -109,6 +110,9 @@ class SidebarComponent extends Component {
                 <Menu.Item name="monitor">
                   <Link to={'/monitor'}>Monitor Items</Link>
                 </Menu.Item>
+                <Menu.Item name="item-saya">
+                  <Link to={'/item-saya'}>Item Saya</Link>
+                </Menu.Item>
               </Segment>
             </Grid.Column>
           }
@@ -121,6 +125,7 @@ class SidebarComponent extends Component {
             }
             <Route exact path={'/'} component={MsgAtTheBottomOfNavbar} />
             <Route exact path={'/monitor'} component={Monitoring} />
+            <Route exact path={'/item-saya'} component={ItemSaya} />
           </Grid.Column>
         </Grid.Row>
       </Grid>

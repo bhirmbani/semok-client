@@ -32,15 +32,21 @@ export const setIsUserSuccessfullyLoginToFalse = () => (dispatch) => {
   });
 };
 
-export const closeSuccessMsgInDelegatingItem = () => (dispatch) => {
-  dispatch({
-    type: actionType.CLOSE_SUCCESS_MSG_IN_DELEGATING_ITEM,
-  });
-};
+// export const closeSuccessMsgInDelegatingItem = () => (dispatch) => {
+//   dispatch({
+//     type: actionType.CLOSE_SUCCESS_MSG_IN_DELEGATING_ITEM,
+//   });
+// };
 
-export const closeErrMsgInDelegatingItem = () => (dispatch) => {
+// export const closeErrMsgInDelegatingItem = () => (dispatch) => {
+//   dispatch({
+//     type: actionType.CLOSE_ERR_MSG_IN_DELEGATING_ITEM,
+//   });
+// };
+
+export const closeMsgInDelegatingItem = () => (dispatch) => {
   dispatch({
-    type: actionType.CLOSE_ERR_MSG_IN_DELEGATING_ITEM,
+    type: actionType.CLOSE_MSG_IN_DELEGATING_ITEM,
   });
 };
 

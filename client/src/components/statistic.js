@@ -2,22 +2,15 @@ import React, { Component } from 'react';
 import { Card, Table, Header, Dropdown, Grid } from 'semantic-ui-react';
 import { connect } from 'react-redux';
 import numeral from 'numeral';
+import { statisticDropdownStyles as styles } from '../helpers/styles';
 
 import {
   getItemWithIdAndName,
   getItemWithTargets,
+  getTargetsFromFirebase,
+  getProgressesFromFirebase,
+  getItems,
 } from '../actions';
-
-const styles = {
-  searchItemDropdown: {
-    fontSize: '1.5em',
-    // marginTop: 5,
-  },
-  searchItemInput: {
-    marginTop: 10,
-    marginBottom: 10,
-  },
-};
 
 class Statistic extends Component {
   constructor(props) {
@@ -32,7 +25,10 @@ class Statistic extends Component {
   componentDidMount() {
     if (!this.props.itemReducer.itemWithIdAndName) {
       this.props.getItemWithIdAndName();
+      this.props.getItems();
     }
+    this.props.getTargetsFromFirebase();
+    this.props.getProgressesFromFirebase();
   }
 
   getItemName() {
@@ -235,6 +231,15 @@ const mapDispatchToProps = dispatch => ({
   },
   getItemWithTargets: (itemId) => {
     dispatch(getItemWithTargets(itemId));
+  },
+  getTargetsFromFirebase: (itemId) => {
+    dispatch(getTargetsFromFirebase(itemId));
+  },
+  getProgressesFromFirebase: (itemId) => {
+    dispatch(getProgressesFromFirebase(itemId));
+  },
+  getItems: () => {
+    dispatch(getItems());
   },
 });
 

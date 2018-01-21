@@ -43,6 +43,42 @@ const initialState = {
       isErrMsgShowed: false,
     },
   },
+  editItemName: {
+    msg: {
+      context: null,
+      content: null,
+      ok: null,
+      isSuccessMsgShowed: false,
+      isErrMsgShowed: false,
+    },
+  },
+  deleteItem: {
+    msg: {
+      context: null,
+      content: null,
+      ok: null,
+      isSuccessMsgShowed: false,
+      isErrMsgShowed: false,
+    },
+  },
+  updateUnitName: {
+    msg: {
+      context: null,
+      content: null,
+      ok: false,
+      isSuccessMsgShowed: false,
+      isErrMsgShowed: false,
+    },
+  },
+  editBobot: {
+    msg: {
+      context: null,
+      content: null,
+      ok: true,
+      isSuccessMsgShowed: false,
+      isErrMsgShowed: false,
+    },
+  },
 };
 
 const openModal = (state) => {
@@ -292,7 +328,23 @@ const openErrMsgInDelegatingItem = (state, payload) => {
   return newState;
 };
 
-const closeSuccessMsgInDelegatingItem = (state) => {
+// const closeSuccessMsgInDelegatingItem = (state) => {
+//   const newState = {
+//     ...state,
+//     delegateItem: {
+//       msg: {
+//         context: null,
+//         content: null,
+//         ok: null,
+//         isSuccessMsgShowed: false,
+//         isErrMsgShowed: false,
+//       },
+//     },
+//   };
+//   return newState;
+// };
+
+const closeMsgInDelegatingItem = (state) => {
   const newState = {
     ...state,
     delegateItem: {
@@ -308,21 +360,21 @@ const closeSuccessMsgInDelegatingItem = (state) => {
   return newState;
 };
 
-const closeErrMsgInDelegatingItem = (state) => {
-  const newState = {
-    ...state,
-    delegateItem: {
-      msg: {
-        context: null,
-        content: null,
-        ok: null,
-        isSuccessMsgShowed: false,
-        isErrMsgShowed: false,
-      },
-    },
-  };
-  return newState;
-};
+// const closeErrMsgInDelegatingItem = (state) => {
+//   const newState = {
+//     ...state,
+//     delegateItem: {
+//       msg: {
+//         context: null,
+//         content: null,
+//         ok: null,
+//         isSuccessMsgShowed: false,
+//         isErrMsgShowed: false,
+//       },
+//     },
+//   };
+//   return newState;
+// };
 
 const openErrMsgInAddProgressValue = (state, payload) => {
   const newState = {
@@ -340,7 +392,7 @@ const openErrMsgInAddProgressValue = (state, payload) => {
   return newState;
 };
 
-const closeErrMsgInAddProgressValue = (state) => {
+const closeMsgInAddProgressValue = (state) => {
   const newState = {
     ...state,
     addProgress: {
@@ -372,10 +424,122 @@ const openSuccessMsgInAddProgressValue = (state, payload) => {
   return newState;
 };
 
-const closeSuccessMsgInAddProgressValue = (state) => {
+const msgFromEditItemNameSuccess = (state, payload) => {
   const newState = {
     ...state,
-    addProgress: {
+    editItemName: {
+      msg: {
+        context: null,
+        content: payload,
+        ok: false,
+        isSuccessMsgShowed: false,
+        isErrMsgShowed: true,
+      },
+    },
+  };
+  return newState;
+};
+
+const msgFromEditItemNameErr = (state, payload) => {
+  const newState = {
+    ...state,
+    editItemName: {
+      msg: {
+        context: null,
+        content: payload,
+        ok: true,
+        isSuccessMsgShowed: true,
+        isErrMsgShowed: false,
+      },
+    },
+  };
+  return newState;
+};
+
+const removeMsgFromEditItemName = (state) => {
+  const newState = {
+    ...state,
+    editItemName: {
+      msg: {
+        context: null,
+        content: null,
+        ok: null,
+        isSuccessMsgShowed: false,
+        isErrMsgShowed: false,
+      },
+    },
+  };
+  return newState;
+};
+
+const msgFromDeleteItemSuccess = (state, payload) => {
+  const newState = {
+    ...state,
+    deleteItem: {
+      msg: {
+        context: null,
+        content: payload,
+        ok: null,
+        isSuccessMsgShowed: true,
+        isErrMsgShowed: false,
+      },
+    },
+  };
+  return newState;
+};
+
+const removeMsgFromDeleteItem = (state) => {
+  const newState = {
+    ...state,
+    deleteItem: {
+      msg: {
+        context: null,
+        content: null,
+        ok: null,
+        isSuccessMsgShowed: false,
+        isErrMsgShowed: false,
+      },
+    },
+  };
+  return newState;
+};
+
+const openSuccessMsgInUpdateUnitName = (state, payload) => {
+  const newState = {
+    ...state,
+    updateUnitName: {
+      msg: {
+        context: null,
+        content: payload,
+        ok: true,
+        isSuccessMsgShowed: true,
+        isErrMsgShowed: false,
+      },
+    },
+  };
+  return newState;
+};
+
+const openErrMsgInUpdateUnitName = (state, payload) => {
+  const newState = {
+    ...state,
+    updateUnitName: {
+      msg: {
+        context: null,
+        content: payload,
+        ok: false,
+        isSuccessMsgShowed: false,
+        isErrMsgShowed: true,
+      },
+    },
+  };
+  return newState;
+};
+
+const closeMsgInUpdateUnitName = (state) => {
+  const newState = {
+    ...state,
+    updateUnitName: {
       msg: {
         context: null,
         content: null,
@@ -387,6 +551,70 @@ const closeSuccessMsgInAddProgressValue = (state) => {
   };
   return newState;
 };
+
+const openSuccessMsgInEditBobot = (state, payload) => {
+  const newState = {
+    ...state,
+    editBobot: {
+      msg: {
+        context: null,
+        content: payload,
+        ok: true,
+        isSuccessMsgShowed: true,
+        isErrMsgShowed: false,
+      },
+    },
+  };
+  return newState;
+};
+
+const openErrMsgInEditBobot = (state, payload) => {
+  const newState = {
+    ...state,
+    editBobot: {
+      msg: {
+        context: null,
+        content: payload,
+        ok: false,
+        isSuccessMsgShowed: false,
+        isErrMsgShowed: true,
+      },
+    },
+  };
+  return newState;
+};
+
+const closeMsgInEditBobot = (state) => {
+  const newState = {
+    ...state,
+    editBobot: {
+      msg: {
+        context: null,
+        content: null,
+        ok: false,
+        isSuccessMsgShowed: false,
+        isErrMsgShowed: false,
+      },
+    },
+  };
+  return newState;
+};
+
+// const closeSuccessMsgInAddProgressValue = (state) => {
+//   const newState = {
+//     ...state,
+//     addProgress: {
+//       msg: {
+//         context: null,
+//         content: null,
+//         ok: false,
+//         isSuccessMsgShowed: false,
+//         isErrMsgShowed: false,
+//       },
+//     },
+//   };
+//   return newState;
+// };
 
 const msgReducer = (state = initialState, { type, payload }) => {
   switch (type) {
@@ -429,11 +657,14 @@ const msgReducer = (state = initialState, { type, payload }) => {
     case actionType.OPEN_ERR_MSG_IN_DELEGATING_ITEM:
       return openErrMsgInDelegatingItem(state, payload);
 
-    case actionType.CLOSE_SUCCESS_MSG_IN_DELEGATING_ITEM:
-      return closeSuccessMsgInDelegatingItem(state);
+    // case actionType.CLOSE_SUCCESS_MSG_IN_DELEGATING_ITEM:
+    //   return closeSuccessMsgInDelegatingItem(state);
 
-    case actionType.CLOSE_ERR_MSG_IN_DELEGATING_ITEM:
-      return closeErrMsgInDelegatingItem(state);
+    // case actionType.CLOSE_ERR_MSG_IN_DELEGATING_ITEM:
+    //   return closeErrMsgInDelegatingItem(state);
+
+    case actionType.CLOSE_MSG_IN_DELEGATING_ITEM:
+      return closeMsgInDelegatingItem(state);
 
     case actionType.MSG_FROM_ADD_TARGET_SUCCESS:
       return msgFromAddTargetSuccess(state, payload);
@@ -447,14 +678,47 @@ const msgReducer = (state = initialState, { type, payload }) => {
     case actionType.OPEN_ERR_MSG_IN_ADD_PROGRESS_VALUE:
       return openErrMsgInAddProgressValue(state, payload);
 
-    case actionType.CLOSE_ERR_MSG_IN_ADD_PROGRESS_VALUE:
-      return closeErrMsgInAddProgressValue(state);
+    // case actionType.CLOSE_ERR_MSG_IN_ADD_PROGRESS_VALUE:
+    //   return closeErrMsgInAddProgressValue(state);
 
     case actionType.OPEN_SUCCESS_MSG_IN_ADD_PROGRESS_VALUE:
       return openSuccessMsgInAddProgressValue(state, payload);
 
-    case actionType.CLOSE_SUCCESS_MSG_IN_ADD_PROGRESS_VALUE:
-      return closeSuccessMsgInAddProgressValue(state);
+    case actionType.CLOSE_MSG_IN_ADD_PROGRESS_VALUE:
+      return closeMsgInAddProgressValue(state);
+
+    case actionType.MSG_FROM_EDIT_ITEM_NAME_SUCCESS:
+      return msgFromEditItemNameSuccess(state, payload);
+
+    case actionType.MSG_FROM_EDIT_ITEM_NAME_ERR:
+      return msgFromEditItemNameErr(state, payload);
+
+    case actionType.REMOVE_MSG_FROM_EDIT_ITEM_NAME:
+      return removeMsgFromEditItemName(state);
+
+    case actionType.MSG_FROM_DELETE_ITEM_SUCCESS:
+      return msgFromDeleteItemSuccess(state, payload);
+
+    case actionType.REMOVE_MSG_FROM_DELETE_ITEM:
+      return removeMsgFromDeleteItem(state, payload);
+
+    case actionType.OPEN_SUCCESS_MSG_IN_UPDATE_UNIT_NAME:
+      return openSuccessMsgInUpdateUnitName(state, payload);
+
+    case actionType.OPEN_ERR_MSG_IN_UPDATE_UNIT_NAME:
+      return openErrMsgInUpdateUnitName(state, payload);
+
+    case actionType.CLOSE_MSG_IN_UPDATE_UNIT_NAME:
+      return closeMsgInUpdateUnitName(state);
+
+    case actionType.OPEN_SUCCESS_MSG_IN_EDIT_BOBOT:
+      return openSuccessMsgInEditBobot(state, payload);
+
+    case actionType.OPEN_ERR_MSG_IN_EDIT_BOBOT:
+      return openErrMsgInEditBobot(state, payload);
+
+    case actionType.CLOSE_MSG_IN_EDIT_BOBOT:
+      return closeMsgInEditBobot(state);
 
     default:
       return state;
