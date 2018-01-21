@@ -1,18 +1,85 @@
 import * as actionType from '../actions/constants';
 // import filterItemByItsMakerAndCategory from '../actions/filterItemActions';
+import helpers from '../helpers';
+
+const whoami = helpers.decode(localStorage.getItem('token'));
 
 const initialState = {
   items: null,
   originalItems: null,
+  myItems: null,
   isFilterByItsMakerAndCategoryTriggered: false,
   itemWithIdAndName: null,
   itemWithTargets: null,
+  categories: null,
 };
 
 const getItems = (state, payload) => {
   const newState = {
     ...state,
     items: payload,
+  };
+  return newState;
+};
+
+const getMyItems = (state, payload) => {
+  const newState = {
+    ...state,
+    myItems: payload,
+  };
+  return newState;
+};
+
+const getAllCategories = (state, payload) => {
+  const newState = {
+    ...state,
+    categories: payload,
+  };
+  return newState;
+};
+
+const createNewCategory = (state, payload) => {
+  const newCat = {
+    key: payload.id,
+    text: payload.name,
+    value: payload.id,
+  };
+  const newState = {
+    ...state,
+    categories: [
+      ...state.categories,
+      newCat,
+    ],
+  };
+  return newState;
+};
+
+const assignCatToItem = (state, payload) => {
+  const itemState = state.items;
+  const itemIdx = itemState.findIndex(each => each.id === payload.meta.itemId);
+  const pickedItem = itemState[itemIdx];
+  pickedItem.Category = {
+    TopCategories: pickedItem.Category ? pickedItem.Category.TopCategories : [],
+    ...payload.data,
+  };
+  pickedItem.CategoryId = payload.data.id;
+  itemState.splice(itemIdx, 1, pickedItem);
+  const newState = {
+    ...state,
+    items: itemState,
+  };
+  return newState;
+};
+
+const addDescription = (state, payload) => {
+  const itemState = state.items;
+  const itemIdx = itemState.findIndex(each => each.id === payload.id);
+  const pickedItem = itemState[itemIdx];
+  pickedItem.description = payload.description;
+  itemState.splice(itemIdx, 1, pickedItem);
+  const newState = {
+    ...state,
+    items: itemState,
   };
   return newState;
 };
@@ -37,30 +104,45 @@ const resultFromGetItemProperties = (state, payload) => {
     Progresses: payload[0].Progresses,
     Statuses: payload[0].Statuses,
     Performances: payload[0].Performances,
+    Units: payload[0].Units,
   };
+  const sortedItems = [
+    ...state.items,
+    newItemWithProperties,
+  ];
+  sortedItems.sort((a, b) => {
+    const nameA = a.name.toUpperCase();
+    const nameB = b.name.toUpperCase();
+    if (nameA < nameB) {
+      return -1;
+    }
+    if (nameA > nameB) {
+      return 1;
+    }
+    // names must be equal
+    return 0;
+  });
   const newState = {
     ...state,
-    items: [
-      newItemWithProperties,
-      ...state.items,
-    ],
+    items: sortedItems,
   };
   return newState;
 };
 
 const addItemBaseAndStretchInTarget = (state, payload) => {
+  console.log(payload);
   let itemWithUpdatedTarget = null;
   const pickedItem = state.items[payload.itemIdx];
   const stateItems = state.items;
-  if (payload.targetData.ref === 910) {
+  if (payload.targetData.casualData.ref === 910) {
     const updatedTarget = {
-      base: payload.targetData.updatedTarget.base,
-      stretch: payload.targetData.updatedTarget.stretch,
+      base: payload.targetData.casualData.updatedTarget.base,
+      stretch: payload.targetData.casualData.updatedTarget.stretch,
       TargetItem: state.items[payload.itemIdx].Targets[payload.targetIdx].TargetItem,
       createdAt: state.items[payload.itemIdx].Targets[payload.targetIdx].createdAt,
       id: state.items[payload.itemIdx].Targets[payload.targetIdx].id,
       period: state.items[payload.itemIdx].Targets[payload.targetIdx].period,
-      updatedAt: payload.targetData.updatedTarget.updatedAt,
+      updatedAt: payload.targetData.casualData.updatedTarget.updatedAt,
     };
     stateItems.splice(payload.itemIdx, 1, pickedItem);
     stateItems[payload.itemIdx].Targets.splice(payload.targetIdx, 1, updatedTarget);
@@ -69,30 +151,31 @@ const addItemBaseAndStretchInTarget = (state, payload) => {
       ...state,
       items: stateItems,
     };
-  } else if (payload.targetData.ref === 1048) {
+  } else if (payload.targetData.casualData.ref === 1048) {
     const arrOfTargets = pickedItem.Targets.map((target) => {
-      if (target.period === payload.targetData.updatedTarget.period) {
-        return payload.targetData.updatedTarget;
+      if (target.period === payload.targetData.casualData.updatedTarget.period) {
+        return payload.targetData.casualData.updatedTarget;
       }
       return target;
     });
 
     const arrOfStatuses = pickedItem.Statuses.map((status) => {
-      if (status.period === payload.targetData.statusResult.period) {
-        return payload.targetData.statusResult;
+      if (status.period === payload.targetData.casualData.statusResult.period) {
+        return payload.targetData.casualData.statusResult;
       }
       return status;
     });
-    const arrOfPerformances = pickedItem.Performances.map((perf) => {
-      if (perf.period === payload.targetData.performanceResult.period) {
-        return payload.targetData.performanceResult;
-      }
-      return perf;
-    });
+    // const arrOfPerformances = pickedItem.Performances.map((perf) => {
+    //   if (perf.period === payload.targetData.casualData.performanceResult.period) {
+    //     return payload.targetData.casualData.performanceResult;
+    //   }
+    //   return perf;
+    // });
 
     pickedItem.Targets = arrOfTargets;
     pickedItem.Statuses = arrOfStatuses;
-    pickedItem.Performances = arrOfPerformances;
+    pickedItem.Workers = payload.targetData.realWorker.Workers;
+    // pickedItem.Performances = arrOfPerformances;
 
     stateItems.splice(payload.itemIdx, 1, pickedItem);
 
@@ -109,12 +192,12 @@ const addValueInProgressItem = (state, payload) => {
   const period = state.items[payload.positionData.itemIdx]
     .Progresses[payload.positionData.progressIdx].period;
   const pickedItem = state.items[payload.positionData.itemIdx];
-  const statusResult = payload.progressData.statusResult;
-  const performanceResult = payload.progressData.performanceResult;
+  const statusResult = payload.progressData.casualData.statusResult;
+  const workerResult = payload.progressData.realWorker.Workers;
   pickedItem.Statuses.push(statusResult);
-  pickedItem.Performances.push(performanceResult);
+  pickedItem.Workers = workerResult;
   pickedItem.Statuses.sort((a, b) => a.period - b.period);
-  pickedItem.Performances.sort((a, b) => a.period - b.period);
+  // pickedItem.Performances.sort((a, b) => a.period - b.period);
 
   const updatedProgress = {
     ProgressItem: state.items[payload.positionData.itemIdx]
@@ -124,8 +207,8 @@ const addValueInProgressItem = (state, payload) => {
     id: state.items[payload.positionData.itemIdx]
       .Progresses[payload.positionData.progressIdx].id,
     period,
-    updatedAt: payload.progressData.progressResult.updatedAt,
-    value: payload.progressData.progressResult.value,
+    updatedAt: payload.progressData.casualData.progressResult.updatedAt,
+    value: payload.progressData.casualData.progressResult.value,
   };
   const stateItems = state.items;
   stateItems.splice(payload.positionData.itemIdx, 1, pickedItem);
@@ -143,9 +226,9 @@ const updateValueInProgressItem = (state, payload) => {
     const period = state.items[payload.positionData.itemIdx]
       .Progresses[payload.positionData.progressIdx].period;
     const pickedItem = state.items[payload.positionData.itemIdx];
-    const updatedProgress = payload.progressData.progressResult;
-    const updatedStatus = payload.progressData.statusResult;
-    const updatedPerformance = payload.progressData.performanceResult;
+    const updatedProgress = payload.progressData.casualData.progressResult;
+    const updatedStatus = payload.progressData.casualData.statusResult;
+    // const updatedPerformance = payload.progressData.casualData.performanceResult;
 
     const arrOfProgress = pickedItem.Progresses.map((each) => {
       if (each.period === period) {
@@ -159,16 +242,17 @@ const updateValueInProgressItem = (state, payload) => {
       }
       return each;
     });
-    const arrOfPerformance = pickedItem.Performances.map((each) => {
-      if (each.period === period) {
-        return updatedPerformance;
-      }
-      return each;
-    });
+    // const arrOfPerformance = pickedItem.Performances.map((each) => {
+    //   if (each.period === period) {
+    //     return updatedPerformance;
+    //   }
+    //   return each;
+    // });
 
     pickedItem.Progresses = arrOfProgress;
     pickedItem.Statuses = arrOfStatus;
-    pickedItem.Performances = arrOfPerformance;
+    // pickedItem.Performances = arrOfPerformance;
+    pickedItem.Workers = payload.progressData.realWorker.Workers;
 
     const stateItems = state.items;
     stateItems.splice(payload.positionData.itemIdx, 1, pickedItem);
@@ -204,7 +288,7 @@ const updateValueInProgressItem = (state, payload) => {
     //     ] };
     //   return newState;
   }
-  return state;
+  // return state;
 };
 
 const filterItemResult = (state, payload) => {
@@ -270,6 +354,66 @@ const getOriginalItems = (state, payload) => {
   return newState;
 };
 
+const getWorkersDataForDelegateItem = (state, payload) => {
+  const itemState = state.items;
+  const itemIdx = itemState.findIndex(each => each.id === payload.info.id);
+  const pickedItem = itemState[itemIdx];
+  console.log('PAYLOAD', payload);
+  pickedItem.Workers = [];
+  pickedItem.Workers = payload.data;
+  itemState.splice(itemIdx, 1, pickedItem);
+  const newState = {
+    ...state,
+    items: itemState,
+  };
+  return newState;
+};
+
+const updateUnitName = (state, payload) => {
+  const itemState = state.items;
+  const itemIdx = itemState.findIndex(each => each.id === payload.itemId);
+  const pickedUnit = itemState[itemIdx].Units[0];
+  pickedUnit.name = payload.updatedName;
+  itemState[itemIdx].Units.splice(0, 1, pickedUnit);
+  const newState = {
+    ...state,
+    items: itemState,
+  };
+  return newState;
+};
+
+const getPerformancesByItemAndWorkerId = (state, payload) => {
+  const itemState = state.items;
+  const itemIdx = itemState.findIndex(each => each.id === payload.meta.itemId);
+  const workerIdx = itemState[itemIdx].Workers.findIndex(each => each.id === payload.meta.workerId);
+  const pickedWorker = itemState[itemIdx].Workers[workerIdx];
+  pickedWorker.Performances = payload.perfData.performances;
+  itemState[itemIdx].Workers.splice(workerIdx, 1, pickedWorker);
+  const newState = {
+    ...state,
+    items: itemState,
+  };
+  return newState;
+  // return state;
+};
+
+const updateBobotValue = (state, payload) => {
+  const itemState = state.items;
+  const itemIdx = itemState.findIndex(each => each.id === payload.ItemId);
+  const workerIdx = itemState[itemIdx].Workers.findIndex(each => each.id === payload.WorkerId);
+  const pickedWorker = itemState[itemIdx].Workers[workerIdx];
+  const bobotIdx = pickedWorker.Bobots.findIndex(each => each.ItemId === payload.ItemId);
+  const pickedBobot = pickedWorker.Bobots[bobotIdx];
+  // update
+  pickedBobot.value = payload.value;
+  itemState[itemIdx].Workers[workerIdx].Bobots.splice(bobotIdx, 1, pickedBobot);
+  const newState = {
+    ...state,
+    items: itemState,
+  };
+  return newState;
+};
+
 
 const itemReducer = (state = initialState, { type, payload }) => {
   switch (type) {
@@ -301,6 +445,24 @@ const itemReducer = (state = initialState, { type, payload }) => {
       return filterItemResult(state, payload);
     case actionType.FETCH_ORIGINAL_ITEMS:
       return getOriginalItems(state, payload);
+    case actionType.GET_WORKERS_DATA_FOR_DELEGATE_ITEM:
+      return getWorkersDataForDelegateItem(state, payload);
+    case actionType.UPDATE_UNIT_NAME:
+      return updateUnitName(state, payload);
+    case actionType.GET_PERFORMANCES_BY_ITEM_AND_WORKER_ID:
+      return getPerformancesByItemAndWorkerId(state, payload);
+    case actionType.UPDATE_BOBOT_VALUE:
+      return updateBobotValue(state, payload);
+    case actionType.GET_ALL_CATEGORIES:
+      return getAllCategories(state, payload);
+    case actionType.CREATE_NEW_CATEGORY:
+      return createNewCategory(state, payload);
+    case actionType.ASSIGN_CAT_TO_ITEM:
+      return assignCatToItem(state, payload);
+    case actionType.ADD_DESCRIPTION:
+      return addDescription(state, payload);
+    case actionType.GET_MY_ITEMS:
+      return getMyItems(state, payload);
     default:
       return state;
   }

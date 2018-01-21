@@ -1,8 +1,8 @@
 import axios from 'axios';
 import firebase from 'firebase';
 import * as actionType from './constants';
-import { msgFromAddItemError, msgFromAddItemSuccess, closeErrMsgInAddItemForm } from './msgActions';
-
+import { msgFromAddItemError, msgFromAddItemSuccess } from './msgActions';
+import { getCategoriesForFilteringItem } from './categoryActions';
 
 // Initialize Firebase
 const config = {
@@ -35,6 +35,18 @@ export const getItems = () => (dispatch, getState) => {
     })
     .catch((err) => {
       console.log(err);
+    });
+};
+
+export const getMyItems = workerId => (dispatch) => {
+  axios.get(`http://localhost:3000/api/item/worker/${workerId}`, {
+    headers: { token: localStorage.getItem('token') },
+  })
+    .then((res) => {
+      dispatch({
+        type: actionType.GET_MY_ITEMS,
+        payload: res.data.items,
+      });
     });
 };
 
@@ -100,14 +112,32 @@ export const delegateItem = delegateData => (dispatch) => {
   })
     .then((res) => {
       if (res.data.ok) {
-        dispatch({
-          type: actionType.OPEN_SUCCESS_MSG_IN_DELEGATING_ITEM,
-          payload: res.data.msg,
-        });
+        axios.get(`http://localhost:3000/api/worker/all/item/${delegateData.itemId}`, {
+          headers: { token: localStorage.getItem('token') },
+        })
+          .then((resp) => {
+            dispatch({
+              type: actionType.GET_WORKERS_DATA_FOR_DELEGATE_ITEM,
+              payload: {
+                data: resp.data.workerRef.Workers,
+                info: res.data.itemRef,
+              },
+            });
+            dispatch({
+              type: actionType.OPEN_SUCCESS_MSG_IN_DELEGATING_ITEM,
+              payload: res.data.msg,
+            });
+            dispatch({
+              type: actionType.CLOSE_MSG_IN_DELEGATING_ITEM,
+            });
+          });
       } else {
         dispatch({
           type: actionType.OPEN_ERR_MSG_IN_DELEGATING_ITEM,
           payload: res.data.msg,
+        });
+        dispatch({
+          type: actionType.CLOSE_MSG_IN_DELEGATING_ITEM,
         });
       }
     });
@@ -131,35 +161,46 @@ export const addItemBaseAndStretchInTarget = (
     headers: { token: localStorage.getItem('token') },
   })
     .then((res) => {
-      if (res.data.ok && res.data.ref === 910) {
-        targets.set({
-          data: res.data,
-          itemIdx,
-          targetIdx,
-          targetPeriod: period,
-          ref: res.data.ref,
+      axios.get(`http://localhost:3000/api/worker/all/item/${targetFormProperties.itemId}`, {
+        headers: { token: localStorage.getItem('token') },
+      })
+        .then((resp) => {
+          if (res.data.ok && res.data.ref === 910) {
+            targets.set({
+              data: {
+                casualData: res.data,
+                realWorker: resp.data.workerRef,
+              },
+              itemIdx,
+              targetIdx,
+              targetPeriod: period,
+              ref: res.data.ref,
+            });
+          } else if (res.data.ok && res.data.ref === 1048) {
+            targets.set({
+              data: {
+                casualData: res.data,
+                realWorker: resp.data.workerRef,
+              },
+              itemIdx,
+              targetIdx,
+              targetPeriod: period,
+              ref: res.data.ref,
+            });
+          } else if (!res.data.ok) {
+            dispatch({
+              type: actionType.MSG_FROM_ADD_TARGET_ERR,
+              payload: res.data.msg,
+            });
+            dispatch({
+              type: actionType.REMOVE_MSG_FROM_ADD_TARGET,
+            });
+          // targets.set({
+          //   ok: res.data.ok,
+          //   msg: res.data.msg,
+          // });
+          }
         });
-      } else if (res.data.ok && res.data.ref === 1048) {
-        targets.set({
-          data: res.data,
-          itemIdx,
-          targetIdx,
-          targetPeriod: period,
-          ref: res.data.ref,
-        });
-      } else if (!res.data.ok) {
-        dispatch({
-          type: actionType.MSG_FROM_ADD_TARGET_ERR,
-          payload: res.data.msg,
-        });
-        dispatch({
-          type: actionType.REMOVE_MSG_FROM_ADD_TARGET,
-        });
-        // targets.set({
-        //   ok: res.data.ok,
-        //   msg: res.data.msg,
-        // });
-      }
     });
 };
 
@@ -168,21 +209,38 @@ export const addValueInProgressItem = (progressFormProperties, positionData) => 
     headers: { token: localStorage.getItem('token') },
   })
     .then((res) => {
-      if ((res.data.ok && res.data.ref === 1137) ||
-        (res.data.ok && res.data.ref === 1130)) {
-        progresses.set({
-          msg: res.data.msg,
-          progressData: res.data,
-          positionData,
-          ref: res.data.ref,
-        });
-      } else if (res.data.ok && res.data.ref === 1146) {
-        progresses.set({
-          msg: res.data.msg,
-          progressData: res.data,
-          positionData,
-          ref: res.data.ref,
-        });
+      if ((res.data.ref === 1335) ||
+          (res.data.ref === 1299) ||
+          (res.data.ref === 1383)) {
+        axios.get(`http://localhost:3000/api/worker/all/item/${progressFormProperties.itemId}`, {
+          headers: { token: localStorage.getItem('token') },
+        })
+          .then((resp) => {
+            progresses.set({
+              msg: res.data.msg,
+              progressData: {
+                realWorker: resp.data.workerRef,
+                casualData: res.data,
+              },
+              positionData,
+              ref: res.data.ref,
+            });
+          });
+      } else if (res.data.ref === 1367 || res.data.ref === 1382) {
+        axios.get(`http://localhost:3000/api/worker/all/item/${progressFormProperties.itemId}`, {
+          headers: { token: localStorage.getItem('token') },
+        })
+          .then((resp) => {
+            progresses.set({
+              msg: res.data.msg,
+              progressData: {
+                realWorker: resp.data.workerRef,
+                casualData: res.data,
+              },
+              positionData,
+              ref: res.data.ref,
+            });
+          });
       } else {
         dispatch({
           type: actionType.OPEN_ERR_MSG_IN_ADD_PROGRESS_VALUE,
@@ -198,13 +256,204 @@ export const addValueInProgressItem = (progressFormProperties, positionData) => 
     });
 };
 
+export const updateUnitName = unitData => (dispatch) => {
+  axios.post('http://localhost:3000/api/item/unit', unitData, {
+    headers: { token: localStorage.getItem('token') },
+  })
+    .then((res) => {
+      if (res.data.ok) {
+        dispatch({
+          type: actionType.UPDATE_UNIT_NAME,
+          payload: res.data,
+        });
+        dispatch({
+          type: actionType.OPEN_SUCCESS_MSG_IN_UPDATE_UNIT_NAME,
+          payload: res.data.msg,
+        });
+        dispatch({
+          type: actionType.CLOSE_MSG_IN_UPDATE_UNIT_NAME,
+        });
+      } else {
+        dispatch({
+          type: actionType.OPEN_ERR_MSG_IN_UPDATE_UNIT_NAME,
+          payload: res.data.msg,
+        });
+        dispatch({
+          type: actionType.CLOSE_MSG_IN_UPDATE_UNIT_NAME,
+        });
+      }
+    });
+};
+
+export const addDescription = addDescForm => (dispatch) => {
+  axios.post('http://localhost:3000/api/item/description', addDescForm, {
+    headers: { token: localStorage.getItem('token') },
+  })
+    .then((res) => {
+      if (res.data.ok) {
+        dispatch({
+          type: actionType.ADD_DESCRIPTION,
+          payload: res.data.desc,
+        });
+      } else {
+        dispatch({
+          type: actionType.MSG_FROM_ADD_DESC_ERR,
+          payload: res.data.msg,
+        });
+        dispatch({
+          type: actionType.CLOSE_MSG_FROM_ADD_DESC,
+        });
+      }
+    });
+};
+
+export const getPerformancesByItemAndWorker = (itemId, workerId) => (dispatch) => {
+  axios.get(`http://localhost:3000/api/item/performances/${itemId}/${workerId}`, {
+    headers: { token: localStorage.getItem('token') },
+  })
+    .then((res) => {
+      if (res.data.ok) {
+        dispatch({
+          type: actionType.GET_PERFORMANCES_BY_ITEM_AND_WORKER_ID,
+          payload: {
+            perfData: res.data,
+            meta: {
+              itemId,
+              workerId,
+            },
+          },
+        });
+      }
+    });
+};
+
+export const updateBobotValue = bobotData => (dispatch) => {
+  axios.post('http://localhost:3000/api/item/bobot', bobotData, {
+    headers: { token: localStorage.getItem('token') },
+  })
+    .then((res) => {
+      if (res.data.ok) {
+        dispatch({
+          type: actionType.UPDATE_BOBOT_VALUE,
+          payload: res.data.updatedBobot,
+        });
+        dispatch({
+          type: actionType.OPEN_SUCCESS_MSG_IN_EDIT_BOBOT,
+          payload: res.data.msg,
+        });
+        dispatch({
+          type: actionType.CLOSE_MSG_IN_EDIT_BOBOT,
+        });
+      } else {
+        dispatch({
+          type: actionType.OPEN_ERR_MSG_IN_EDIT_BOBOT,
+          payload: res.data.msg,
+        });
+        dispatch({
+          type: actionType.CLOSE_MSG_IN_EDIT_BOBOT,
+        });
+      }
+    });
+};
+
+export const getAllCategory = chosenCat => (dispatch) => {
+  axios.get('http://localhost:3000/api/category', {
+    headers: { token: localStorage.getItem('token') },
+  })
+    .then((res) => {
+      if (res.data.ok) {
+        let forDropdown = null;
+        if (!chosenCat) {
+          forDropdown = res.data.categories.map(each => ({
+            key: each.id,
+            text: each.name,
+            value: each.id,
+          }));
+        } else {
+          const rawDropdown = res.data.categories.map(each => ({
+            key: each.id,
+            text: each.name,
+            value: each.id,
+          }));
+          forDropdown = rawDropdown.filter(each => each.text !== chosenCat);
+        }
+        dispatch({
+          type: actionType.GET_ALL_CATEGORIES,
+          payload: forDropdown,
+        });
+      }
+    });
+};
+
+export const createNewCategory = categoryName => (dispatch) => {
+  axios.post('http://localhost:3000/api/category/', categoryName, {
+    headers: { token: localStorage.getItem('token') },
+  })
+    .then((res) => {
+      if (res.data.ok) {
+        dispatch({
+          type: actionType.CREATE_NEW_CATEGORY,
+          payload: res.data.uniqCategory,
+        });
+        dispatch(getCategoriesForFilteringItem());
+        // dispatch({
+        //   type: actionType.MSG_FROM_ADD_CAT_SUCCESS,
+        //   payload: res.data.msg,
+        // });
+        // dispatch({
+        //   type: actionType.CLOSE_MSG_FROM_ADD_CAT,
+        // });
+      } else {
+        dispatch({
+          type: actionType.MSG_FROM_ADD_CAT_ERR,
+          payload: res.data.msg,
+        });
+        // dispatch({
+        //   type: actionType.CLOSE_MSG_FROM_ADD_CAT,
+        // });
+      }
+    });
+};
+
+export const assignCatToItem = assignCatForm => (dispatch) => {
+  axios.post('http://localhost:3000/api/category/item', assignCatForm, {
+    headers: { token: localStorage.getItem('token') },
+  })
+    .then((res) => {
+      if (res.data.ok) {
+        dispatch({
+          type: actionType.ASSIGN_CAT_TO_ITEM,
+          payload: {
+            data: res.data.filteredCategory[0],
+            meta: assignCatForm,
+          },
+        });
+        dispatch({
+          type: actionType.MSG_FROM_ASSIGN_CAT_SUCCESS,
+          payload: res.data.msg,
+        });
+        dispatch({
+          type: actionType.CLOSE_MSG_IN_ASSIGN_CAT,
+        });
+      } else {
+        // dispatch({
+        //   type: actionType.MSG_FROM_ASSIGN_CAT_ERR,
+        //   payload: res.data.msg,
+        // });
+        // dispatch({
+        //   type: actionType.CLOSE_MSG_IN_ASSIGN_CAT,
+        // });
+      }
+    });
+};
+
 export const getTargetsFromFirebase = () => (dispatch) => {
   targets.on('value', (data) => {
     if (data.val() !== null) {
       if (data.val().ref === 910) {
         dispatch({
           type: actionType.MSG_FROM_ADD_TARGET_SUCCESS,
-          payload: data.val().data,
+          payload: data.val().data.casualData,
         });
         dispatch({
           type: actionType.REMOVE_MSG_FROM_ADD_TARGET,
@@ -221,7 +470,7 @@ export const getTargetsFromFirebase = () => (dispatch) => {
       } else if (data.val().ref === 1048) {
         dispatch({
           type: actionType.MSG_FROM_ADD_TARGET_SUCCESS,
-          payload: data.val().data,
+          payload: data.val().data.casualData,
         });
         dispatch({
           type: actionType.REMOVE_MSG_FROM_ADD_TARGET,
@@ -244,7 +493,9 @@ export const getTargetsFromFirebase = () => (dispatch) => {
 export const getProgressesFromFirebase = () => (dispatch) => {
   progresses.on('value', (data) => {
     if (data.val() !== null) {
-      if (data.val().ref === 1137 || data.val().ref === 1130) {
+      if (data.val().ref === 1335
+        || data.val().ref === 1299
+        || data.val().ref === 1383) {
         dispatch({
           type: actionType.OPEN_SUCCESS_MSG_IN_ADD_PROGRESS_VALUE,
           payload: data.val().msg,
@@ -259,7 +510,7 @@ export const getProgressesFromFirebase = () => (dispatch) => {
             positionData: data.val().positionData,
           },
         });
-      } else if (data.val().ref === 1146) {
+      } else if (data.val().ref === 1367 || data.val().ref === 1382) {
         dispatch({
           type: actionType.OPEN_SUCCESS_MSG_IN_ADD_PROGRESS_VALUE,
           payload: data.val().msg,

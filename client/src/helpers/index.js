@@ -1,3 +1,9 @@
+import moment from 'moment';
+
+import 'moment/locale/id';
+
+moment.locale('id');
+
 const jwt = require('jsonwebtoken');
 
 const methods = {};
@@ -34,5 +40,7 @@ methods.processMonthName = (period) => {
       return '';
   }
 };
+
+methods.processCreatedDate = date => moment(date).format('dddd, D MMMM YYYY');
 
 export default methods;

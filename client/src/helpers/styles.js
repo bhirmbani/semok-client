@@ -21,6 +21,7 @@ export const itemTableStyles = {
     marginTop: 20,
     marginRight: 20,
     marginLeft: 20,
+    marginBottom: 10,
   },
   itemProperties: {
     margin: 10,
@@ -67,6 +68,28 @@ export const itemTableStyles = {
   editDeleteItem: {
     padding: 2,
     cursor: 'pointer',
+  },
+  itemInfo: {
+    cursor: 'help',
+    fontSize: '0.8em',
+  },
+  itemNoteText: {
+    fontSize: '0.8em',
+    // backgroundColor: '#0E2431',
+    color: '#0E2431',
+  },
+  itemActionIcon: {
+    fontSize: '2em',
+    cursor: 'pointer',
+  },
+  itemInfoPosition: {
+    padding: '5px 0px 5px 0px',
+  },
+  textEllipsis: {
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    width: '25%',
   },
 };
 
