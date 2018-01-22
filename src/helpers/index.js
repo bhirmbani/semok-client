@@ -43,4 +43,14 @@ methods.processMonthName = (period) => {
 
 methods.processCreatedDate = date => moment(date).format('dddd, D MMMM YYYY');
 
+methods.createYear = () => {
+  const currentYear = moment().year();
+  const lastFiveYear = currentYear - 5;
+  const options = [];
+  for (let i = lastFiveYear; i <= currentYear; i += 1) {
+    options.push({ text: `${i}`, value: `${i}` });
+  }
+  return options;
+};
+
 export default methods;

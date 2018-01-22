@@ -9,9 +9,23 @@ const initialState = {
   originalItems: null,
   myItems: null,
   isFilterByItsMakerAndCategoryTriggered: false,
+  isFilterByNameTriggered: false,
   itemWithIdAndName: null,
   itemWithTargets: null,
   categories: null,
+  filterItem: {
+    itemOptionsList: null,
+  },
+};
+
+const getItemOptionsList = (state, payload) => {
+  const newState = {
+    ...state,
+    filterItem: {
+      itemOptionsList: payload,
+    },
+  };
+  return newState;
 };
 
 const getItems = (state, payload) => {
@@ -315,6 +329,24 @@ const turnOffFilterByItsMakerAndCategory = (state) => {
   return newState;
 };
 
+const filterByItemName = (state) => {
+  const newState = { ...state, isFilterByNameTriggered: true };
+  return newState;
+};
+
+const turnOffFilterByName = (state) => {
+  const newState = { ...state, isFilterByNameTriggered: false };
+  return newState;
+};
+
+const changeItemsStateToOriginal = (state, payload) => {
+  const newState = {
+    ...state,
+    items: payload,
+  };
+  return newState;
+};
+
 const getItemWithTargets = (state, payload) => {
   const newState = {
     ...state,
@@ -421,8 +453,18 @@ const itemReducer = (state = initialState, { type, payload }) => {
       return getItems(state, payload);
     // case actionType.ADD_ITEM_SUCCESS:
     //   return addItemSuccess(state, payload);
+    case actionType.TRIGGER_FILTER_BY_NAME:
+      return filterByItemName(state);
+
+    case actionType.TURN_OFF_FILTER_BY_NAME:
+      return turnOffFilterByName(state);
+
     case actionType.TRIGGER_FILTER_BY_ITS_MAKER_AND_CATEGORY:
       return filterItemByItsMakerAndCategory(state);
+
+    case actionType.CHANGE_ITEMS_STATE_TO_ORIGINAL:
+      return changeItemsStateToOriginal(state, payload);
+
     case actionType.TURN_OFF_FILTER_BY_ITS_MAKER_AND_CATEGORY:
       return turnOffFilterByItsMakerAndCategory(state);
     case actionType.GET_ITEM_WITH_ID_AND_NAME:
@@ -463,6 +505,8 @@ const itemReducer = (state = initialState, { type, payload }) => {
       return addDescription(state, payload);
     case actionType.GET_MY_ITEMS:
       return getMyItems(state, payload);
+    case actionType.GET_ITEM_OPTIONS_LIST:
+      return getItemOptionsList(state, payload);
     default:
       return state;
   }

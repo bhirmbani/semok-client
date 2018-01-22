@@ -1,14 +1,15 @@
-import React, { Component } from 'react';
-import { Button, Header, Icon, Modal, Form, Dropdown } from 'semantic-ui-react';
-import { connect } from 'react-redux';
+import React, { Component } from "react";
+import { Button, Header, Icon, Modal, Form, Dropdown } from "semantic-ui-react";
+import { connect } from "react-redux";
 
-import { addItem, closeAddItemFormModal, openModal } from '../actions';
-import ErrMsgInAddItemForm from './errMsgInAddItemForm';
+import { addItem, closeAddItemFormModal, openModal } from "../actions";
+import ErrMsgInAddItemForm from "./errMsgInAddItemForm";
+import helpers from '../helpers';
 
 const styles = {
   btnPosition: {
-    marginBottom: '20px',
-  },
+    marginBottom: "20px"
+  }
 };
 
 class AddItemFormModal extends Component {
@@ -16,24 +17,25 @@ class AddItemFormModal extends Component {
     super(props);
     this.state = {
       form: {
-        name: '',
-        description: '',
-        freq: '',
-        value: '',
+        name: "",
+        description: "",
+        freq: "",
+        value: "",
+        year: ""
       },
-      isModalOpened: false,
+      isModalOpened: false
     };
     this.handleChange = this.handleChange.bind(this);
   }
 
   onClickAdd(e) {
     e.preventDefault();
-    this.props.addItem(this.state.form)
+    this.props.addItem(this.state.form);
     this.closeModalIfItemAddedSuccessfully();
   }
 
   closeModalIfItemAddedSuccessfully() {
-    if (this.props.msgReducer.addItem.msg.context === 'Terimakasih') {
+    if (this.props.msgReducer.addItem.msg.context === "Terimakasih") {
       this.setState({ isModalOpened: false });
     }
   }
@@ -43,13 +45,13 @@ class AddItemFormModal extends Component {
     const { form } = this.state;
 
     const tmpForm = {
-      ...form,
+      ...form
     };
 
     tmpForm[name] = value;
 
     this.setState({
-      form: tmpForm,
+      form: tmpForm
     });
   }
 
@@ -59,18 +61,51 @@ class AddItemFormModal extends Component {
     return (
       <div>
         <Modal
-          trigger={<Button secondary onClick={() => { this.props.openModal(); this.setState({ isModalOpened: true, form: { name: '', description: '', freq: '', value: '' } }); }}>
-            <Icon name="plus" />Tambah Item Baru</Button>}
+          trigger={
+            <Button
+              secondary
+              onClick={() => {
+                this.props.openModal();
+                this.setState({
+                  isModalOpened: true,
+                  form: { name: "", description: "", freq: "", value: "" }
+                });
+              }}
+            >
+              <Icon name="plus" />Tambah Item Baru
+            </Button>
+          }
           closeIcon="close"
           size="small"
           closeOnDimmerClick={false}
           open={this.props.msgReducer.addItem.msg.isModalOpened}
-          onClose={() => { this.props.closeAddItemFormModal(); this.setState({ isModalOpened: false, form: { name: '', description: '', freq: '', value: '' } }); }}
+          onClose={() => {
+            this.props.closeAddItemFormModal();
+            this.setState({
+              isModalOpened: false,
+              form: { name: "", description: "", freq: "", value: "" }
+            });
+          }}
         >
           <Header icon="plus" content="Tambah Item KPI" />
           <Modal.Content>
             <Form onSubmit={e => this.onClickAdd(e)}>
               {msg}
+              <Form.Field>
+                <label>Tahun</label>
+                <Dropdown
+                  placeholder="Pilih periode tahun item ini"
+                  fluid
+                  selection
+                  name="year"
+                  onChange={(e, { value }) => {
+                    const tempState = { ...form };
+                    tempState.year = value;
+                    this.setState({ ...this.state.form, form: tempState });
+                  }}
+                  options={helpers.createYear()}
+                />
+              </Form.Field>
               <Form.Field>
                 <label>Nama Item</label>
                 <input
@@ -98,13 +133,14 @@ class AddItemFormModal extends Component {
                   selection
                   name="freq"
                   onChange={(e, { value }) => {
-                    const tempState = { ...form }; tempState.freq = value;
+                    const tempState = { ...form };
+                    tempState.freq = value;
                     this.setState({ form: tempState });
                   }}
                   options={[
-                    { text: 'setiap bulan', value: '1' },
-                    { text: 'setiap triwulan', value: '3' },
-                    { text: 'setahun sekali', value: '12' },
+                    { text: "setiap bulan", value: "1" },
+                    { text: "setiap triwulan", value: "3" },
+                    { text: "setahun sekali", value: "12" }
                   ]}
                 />
               </Form.Field>
@@ -119,15 +155,10 @@ class AddItemFormModal extends Component {
                 />
               </Form.Field>
 
-              <Button
-                color="blue"
-                floated="right"
-                style={styles.btnPosition}
-              >
+              <Button color="blue" floated="right" style={styles.btnPosition}>
                 <Icon name="plus" />
-              Tambah
+                Tambah
               </Button>
-
             </Form>
           </Modal.Content>
         </Modal>
@@ -137,11 +168,11 @@ class AddItemFormModal extends Component {
 }
 
 const mapStateToProps = state => ({
-  msgReducer: state.msgReducer,
+  msgReducer: state.msgReducer
 });
 
 const mapDispatchToProps = dispatch => ({
-  addItem: (data) => {
+  addItem: data => {
     dispatch(addItem(data));
   },
   closeAddItemFormModal: () => {
@@ -149,7 +180,7 @@ const mapDispatchToProps = dispatch => ({
   },
   openModal: () => {
     dispatch(openModal());
-  },
+  }
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(AddItemFormModal);

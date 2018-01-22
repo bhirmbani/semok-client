@@ -14,8 +14,11 @@ export const itemTableStyles = {
   itemCat: {
     cursor: 'pointer',
   },
-  filterDropdown: {
+  filterDropdownParent: {
     fontSize: '1.5em',
+  },
+  filterDropdown: {
+    width: '85%',
   },
   popupParent: {
     marginTop: 20,
