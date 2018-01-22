@@ -93,7 +93,5 @@ export const turnOffFilterByName = () => (dispatch, getState) => {
     type: actionType.CHANGE_ITEMS_STATE_TO_ORIGINAL,
     payload: allItems,
   });
-  dispatch({
-    type: actionType.TURN_OFF_FILTER_BY_NAME,
-  });
+  dispatch({ type: actionType.TURN_OFF_FILTER_BY_NAME });
 };

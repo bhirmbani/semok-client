@@ -360,8 +360,11 @@ const editItemName = (state, payload) => {
   const pickedItem = itemState[payload.itemIdx];
   pickedItem.name = payload.data.updatedItem.name;
   itemState.splice(payload.itemIdx, 1, pickedItem);
+  let options = null;
+  options = state.originalItems.map(item => ({ text: item.name, value: item.name }));
   const newState = {
     ...state,
+    filterItem: { itemOptionsList: options },
     items: itemState,
   };
 

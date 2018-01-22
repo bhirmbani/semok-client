@@ -33,14 +33,10 @@ export const getItems = () => (dispatch, getState) => {
         payload: originalItems.itemReducer.items,
       });
       const allItems = originalItems.itemReducer.items;
-      let options = null;
-      options = allItems.map(item => ({
-        text: item.name,
-        value: item.name,
-      }));
+      const options = () => allItems.map(item => ({ text: item.name, value: item.name }));
       dispatch({
         type: actionType.GET_ITEM_OPTIONS_LIST,
-        payload: options,
+        payload: options(),
       });
     })
     .catch((err) => {
